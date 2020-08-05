@@ -131,7 +131,7 @@ export interface ExploreItemState {
   /**
    * Table model that combines all query table results into a single table.
    */
-  tableResult: DataFrame | null;
+  tableResults: DataFrame[] | null;
 
   /**
    * React keys for rendering of QueryRows

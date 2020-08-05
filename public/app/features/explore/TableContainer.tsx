@@ -18,7 +18,7 @@ interface TableContainerProps {
   width: number;
   onCellFilterAdded?: (filter: FilterItem) => void;
   showingTable: boolean;
-  tableResult?: DataFrame;
+  tableResults?: DataFrame[];
   toggleTable: typeof toggleTable;
   splitOpen: typeof splitOpen;
   range: TimeRange;
@@ -30,42 +30,59 @@ export class TableContainer extends PureComponent<TableContainerProps> {
   };
 
   getTableHeight() {
-    const { tableResult } = this.props;
+    const { tableResults } = this.props;
 
-    if (!tableResult || tableResult.length === 0) {
+    if (!tableResults || tableResults.length === 0) {
       return 200;
     }
 
     // tries to estimate table height
-    return Math.max(Math.min(600, tableResult.length * 35) + 35);
+    return Math.max(Math.min(600, tableResults.length * 35) + 35);
   }
 
   render() {
-    const { loading, onCellFilterAdded, showingTable, tableResult, width, splitOpen, range } = this.props;
+    const { loading, onCellFilterAdded, showingTable, tableResults, width, splitOpen, range } = this.props;
 
     const height = this.getTableHeight();
     const tableWidth = width - config.theme.panelPadding * 2 - PANEL_BORDER;
-    const hasTableResult = tableResult?.length;
 
-    if (tableResult && tableResult.length) {
+    if (tableResults?.length) {
       // Bit of code smell here. We need to add links here to the frame modifying the frame on every render.
       // Should work fine in essence but still not the ideal way to pass props. In logs container we do this
       // differently and sidestep this getLinks API on a dataframe
-      for (const field of tableResult.fields) {
-        field.getLinks = (config: ValueLinkConfig) => {
-          return getFieldLinksForExplore(field, config.valueRowIndex!, splitOpen, range);
-        };
-      }
+      tableResults.forEach(tableResult => {
+        for (const field of tableResult.fields) {
+          field.getLinks = (config: ValueLinkConfig) => {
+            return getFieldLinksForExplore(field, config.valueRowIndex!, splitOpen, range);
+          };
+        }
+      });
+    }
+
+    if (!tableResults?.length) {
+      return <MetaInfoText metaItems={[{ value: '0 series returned' }]} />;
     }
 
     return (
-      <Collapse label="Table" loading={loading} collapsible isOpen={showingTable} onToggle={this.onClickTableButton}>
-        {hasTableResult ? (
-          <Table data={tableResult!} width={tableWidth} height={height} onCellFilterAdded={onCellFilterAdded} />
-        ) : (
-          <MetaInfoText metaItems={[{ value: '0 series returned' }]} />
-        )}
-      </Collapse>
+      <>
+        {tableResults.map((tableResult, index) => {
+          if (!tableResult.length) {
+            return null;
+          }
+          return (
+            <Collapse
+              label="Table"
+              key={tableResult.name || index}
+              loading={loading}
+              collapsible
+              isOpen={showingTable}
+              onToggle={this.onClickTableButton}
+            >
+              <Table data={tableResult} width={tableWidth} height={height} onCellFilterAdded={onCellFilterAdded} />
+            </Collapse>
+          );
+        })}
+      </>
     );
   }
 }
@@ -74,9 +91,9 @@ function mapStateToProps(state: StoreState, { exploreId }: { exploreId: string }
   const explore = state.explore;
   // @ts-ignore
   const item: ExploreItemState = explore[exploreId];
-  const { loading: loadingInState, showingTable, tableResult, range } = item;
-  const loading = tableResult && tableResult.length > 0 ? false : loadingInState;
-  return { loading, showingTable, tableResult, range };
+  const { loading: loadingInState, showingTable, tableResults, range } = item;
+  const loading = tableResults && tableResults.length > 0 ? false : loadingInState;
+  return { loading, showingTable, tableResults, range };
 }
 
 const mapDispatchToProps = {

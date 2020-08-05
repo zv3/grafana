@@ -117,7 +117,7 @@ export const makeExploreItemState = (): ExploreItemState => ({
   isPaused: false,
   urlReplaced: false,
   queryResponse: createEmptyQueryResponse(),
-  tableResult: null,
+  tableResults: null,
   graphResult: null,
   logsResult: null,
   dedupStrategy: LogsDedupStrategy.none,
@@ -218,7 +218,7 @@ export const itemReducer = (state: ExploreItemState = makeExploreItemState(), ac
       ...state,
       queries: queries.slice(),
       graphResult: null,
-      tableResult: null,
+      tableResults: null,
       logsResult: null,
       queryKeys: getQueryKeys(queries, state.datasourceInstance),
       queryResponse: createEmptyQueryResponse(),
@@ -285,7 +285,7 @@ export const itemReducer = (state: ExploreItemState = makeExploreItemState(), ac
       ...state,
       datasourceInstance: updatedDatasourceInstance,
       graphResult: null,
-      tableResult: null,
+      tableResults: null,
       logsResult: null,
       latency: 0,
       queryResponse: createEmptyQueryResponse(),
@@ -522,7 +522,7 @@ export const processQueryResponse = (
       loading: false,
       queryResponse: response,
       graphResult: null,
-      tableResult: null,
+      tableResults: null,
       logsResult: null,
       update: makeInitialUpdateState(),
     };
@@ -535,7 +535,7 @@ export const processQueryResponse = (
   const latency = request.endTime ? request.endTime - request.startTime : 0;
   const processor = new ResultProcessor(state, series, request.intervalMs, request.timezone as TimeZone);
   const graphResult = processor.getGraphResult();
-  const tableResult = processor.getTableResult();
+  const tableResults = processor.getTableResult();
   const logsResult = processor.getLogsResult();
 
   // Send legacy data to Angular editors
@@ -550,13 +550,13 @@ export const processQueryResponse = (
     latency,
     queryResponse: response,
     graphResult,
-    tableResult,
+    tableResults,
     logsResult,
     loading: loadingState === LoadingState.Loading || loadingState === LoadingState.Streaming,
     update: makeInitialUpdateState(),
     showLogs: !!logsResult,
     showMetrics: !!graphResult,
-    showTable: !!tableResult,
+    showTable: !!tableResults?.length,
     showTrace: !!processor.traceFrames.length,
   };
 };

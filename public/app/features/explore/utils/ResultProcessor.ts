@@ -67,7 +67,7 @@ export class ResultProcessor {
     );
   }
 
-  getTableResult(): DataFrame | null {
+  getTableResult(): DataFrame[] | null {
     if (this.tableFrames.length === 0) {
       return null;
     }
@@ -94,16 +94,18 @@ export class ResultProcessor {
       ? standardTransformers.seriesToColumnsTransformer.transformer({})
       : standardTransformers.mergeTransformer.transformer({});
 
-    const data = transformer(this.tableFrames)[0];
+    const data = transformer(this.tableFrames);
 
     // set display processor
-    for (const field of data.fields) {
-      field.display = getDisplayProcessor({
-        field,
-        theme: config.theme,
-        timeZone: this.timeZone,
-      });
-    }
+    data.forEach(tableFrame => {
+      for (const field of tableFrame.fields) {
+        field.display = getDisplayProcessor({
+          field,
+          theme: config.theme,
+          timeZone: this.timeZone,
+        });
+      }
+    });
 
     return data;
   }
