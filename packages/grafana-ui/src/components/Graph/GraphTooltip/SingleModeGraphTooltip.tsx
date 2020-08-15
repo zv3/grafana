@@ -19,7 +19,9 @@ export const SingleModeGraphTooltip: React.FC<GraphTooltipContentProps> = ({
     activeDimensions.yAxis === null ||
     activeDimensions.yAxis[1] === undefined ||
     activeDimensions.xAxis === null ||
-    activeDimensions.xAxis[1] === undefined
+    activeDimensions.xAxis[1] === undefined ||
+    dimensions.xAxis.columns[activeDimensions.xAxis[0]] === undefined ||
+    dimensions.yAxis.columns[activeDimensions.yAxis[0]] === undefined
   ) {
     return null;
   }
