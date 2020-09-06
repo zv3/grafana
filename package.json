@@ -257,6 +257,7 @@
     "papaparse": "4.6.3",
     "prismjs": "1.21.0",
     "prop-types": "15.7.2",
+    "proxy-polyfill": "^0.3.2",
     "rc-cascader": "1.0.1",
     "re-resizable": "^6.2.0",
     "react": "16.12.0",

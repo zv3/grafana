@@ -7,6 +7,8 @@ import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'; // fetch polyfill n
 // @ts-ignore
 import ttiPolyfill from 'tti-polyfill';
 
+import 'proxy-polyfill';
+
 import 'file-saver';
 import 'lodash';
 import 'jquery';
