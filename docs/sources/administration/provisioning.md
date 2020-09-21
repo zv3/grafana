@@ -261,8 +261,6 @@ providers:
     type: file
     # <bool> disable dashboard deletion
     disableDeletion: false
-    # <bool> enable dashboard editing
-    editable: true
     # <int> how often Grafana will scan for changed dashboards
     updateIntervalSeconds: 10
     # <bool> allow updating provisioned dashboards from the UI
@@ -414,13 +412,13 @@ The following sections detail the supported settings and secure settings for eac
 
 #### Alert notification `pushover`
 
-| Name     |
-| -------- |
-| apiToken |
-| userKey  |
-| device   |
-| retry    |
-| expire   |
+| Name     | Secure setting |
+| -------- | -------------- |
+| apiToken | yes |
+| userKey  | yes |
+| device   | |
+| retry    | |
+| expire   | |
 
 #### Alert notification `slack`
 
@@ -453,9 +451,9 @@ The following sections detail the supported settings and secure settings for eac
 
 #### Alert notification `LINE`
 
-| Name  |
-| ----- |
-| token |
+| Name  | Secure setting |
+| ----- | - |
+| token | yes |
 
 #### Alert notification `pagerduty`
 
@@ -466,13 +464,13 @@ The following sections detail the supported settings and secure settings for eac
 
 #### Alert notification `sensu`
 
-| Name     |
-| -------- |
-| url      |
-| source   |
-| handler  |
-| username |
-| password |
+| Name     | Secure setting |
+| -------- | - | 
+| url      | |
+| source   | |
+| handler  | |
+| username | |
+| password | yes |
 
 #### Alert notification `prometheus-alertmanager`
 
@@ -511,28 +509,28 @@ The following sections detail the supported settings and secure settings for eac
 
 #### Alert notification `opsgenie`
 
-| Name             |
-| ---------------- |
-| apiKey           |
-| apiUrl           |
-| autoClose        |
-| overridePriority |
+| Name             | Secure setting |
+| ---------------- | - |
+| apiKey           | yes |
+| apiUrl           | |
+| autoClose        | |
+| overridePriority | |
 
 #### Alert notification `telegram`
 
-| Name        |
-| ----------- |
-| bottoken    |
-| chatid      |
-| uploadImage |
+| Name        | Secure setting |
+| ----------- | - |
+| bottoken    | yes |
+| chatid      | |
+| uploadImage | |
 
 #### Alert notification `threema`
 
-| Name         |
-| ------------ |
-| gateway_id   |
-| recipient_id |
-| api_secret   |
+| Name         | Secure setting |
+| ------------ | - |
+| gateway_id   | |
+| recipient_id | |
+| api_secret   | yes |
 
 #### Alert notification `webhook`
 

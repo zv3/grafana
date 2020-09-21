@@ -1,13 +1,24 @@
 import { e2e } from '../index';
 
 // @todo this actually returns type `Cypress.Chainable`
-export const selectOption = (select: any, optionText: string): any =>
+export const selectOption = (select: any, optionText: string | RegExp, clickToOpen = true): any =>
   select.within(() => {
-    e2e()
-      .get('[class$="-input-suffix"]')
-      .click();
+    if (clickToOpen) {
+      e2e()
+        .get('[class$="-input-suffix"]')
+        .click();
+    }
+
     e2e.components.Select.option()
-      .filter(`:contains("${optionText}")`)
+      .filter((_, { textContent }) => {
+        if (textContent === null) {
+          return false;
+        } else if (typeof optionText === 'string') {
+          return textContent.includes(optionText);
+        } else {
+          return optionText.test(textContent);
+        }
+      })
       .scrollIntoView()
       .click();
     e2e()

@@ -18,6 +18,10 @@ import (
 	"github.com/grafana/grafana/pkg/util/errutil"
 )
 
+var (
+	logger = log.New("social")
+)
+
 type BasicUserInfo struct {
 	Id             string
 	Name           string
