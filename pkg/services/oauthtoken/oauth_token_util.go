@@ -2,6 +2,7 @@ package oauthtoken
 
 import (
 	"context"
+	"strings"
 
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/infra/log"
@@ -33,15 +34,17 @@ func GetCurrentOAuthToken(ctx context.Context, user *models.SignedInUser) *oauth
 	}
 
 	authProvider := authInfoQuery.Result.AuthModule
-	connect, err := social.GetConnector(authProvider)
-	if err != nil {
-		logger.Error("failed to get OAuth connector", "provider", authProvider, "error", err)
+	// The socialMap keys don't have "oauth_" prefix, but everywhere else in the system does
+	provider := strings.TrimPrefix(authProvider, "oauth_")
+	connector, ok := social.SocialMap[provider]
+	if !ok {
+		logger.Error("failed to find OAuth provider for %q", provider)
 		return nil
 	}
 
 	client, err := social.GetOAuthHttpClient(authProvider)
 	if err != nil {
-		logger.Error("failed to get OAuth http client", "provider", authProvider, "error", err)
+		logger.Error("failed to get OAuth HTTP client", "provider", authProvider, "error", err)
 		return nil
 	}
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, client)
@@ -53,9 +56,10 @@ func GetCurrentOAuthToken(ctx context.Context, user *models.SignedInUser) *oauth
 		TokenType:    authInfoQuery.Result.OAuthTokenType,
 	}
 	// TokenSource handles refreshing the token if it has expired
-	token, err := connect.TokenSource(ctx, persistedToken).Token()
+	token, err := connector.TokenSource(ctx, persistedToken).Token()
 	if err != nil {
-		logger.Error("failed to retrieve OAuth access token", "provider", authInfoQuery.Result.AuthModule, "userId", user.UserId, "username", user.Login, "error", err)
+		logger.Error("failed to retrieve OAuth access token", "provider", authInfoQuery.Result.AuthModule,
+			"userId", user.UserId, "username", user.Login, "error", err)
 		return nil
 	}
 
