@@ -1,8 +1,8 @@
 import { DataFrame, FieldType, parseLabels, KeyValue, CircularDataFrame } from '@grafana/data';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, timer } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import { LokiTailResponse } from './types';
-import { finalize, map, catchError } from 'rxjs/operators';
+import { finalize, map, retryWhen, mergeMap } from 'rxjs/operators';
 import { appendResponseToBufferedData } from './result_transformer';
 
 /**
@@ -42,9 +42,21 @@ export class LiveStreams {
         appendResponseToBufferedData(response, data);
         return [data];
       }),
-      catchError(err => {
-        return throwError(`error: ${err.reason}`);
-      }),
+      retryWhen((attempts: Observable<any>) =>
+        attempts.pipe(
+          mergeMap((error, i) => {
+            const retryAttempt = i + 1;
+            // If maximum number of retries have been met, throw error
+            if (retryAttempt > 3) {
+              return throwError(`error: ${error.reason}`);
+            }
+
+            // Retry to reconnect after 1s
+            console.log('Reconnecting websocket...');
+            return timer(1000);
+          })
+        )
+      ),
       finalize(() => {
         delete this.streams[target.url];
       })
