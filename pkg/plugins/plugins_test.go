@@ -216,7 +216,7 @@ func TestPluginScanner_validateSignature(t *testing.T) {
 	}
 }
 
-func TestPluginScanner_validateSignature2(t *testing.T) {
+func TestPluginScanner_validateSignature_ignoreAll(t *testing.T) {
 	origEnv := setting.Env
 	t.Cleanup(func() {
 		setting.Env = origEnv
