@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/plugins/backendplugin"
 	"github.com/grafana/grafana/pkg/setting"
@@ -160,7 +161,7 @@ func TestPluginManager_Init(t *testing.T) {
 	})
 }
 
-func TestPluginManager_IsBackendOnlyPlugin(t *testing.T) {
+func TestPluginScanner_IsBackendOnlyPlugin(t *testing.T) {
 	pluginScanner := &PluginScanner{}
 
 	type testCase struct {
@@ -176,6 +177,76 @@ func TestPluginManager_IsBackendOnlyPlugin(t *testing.T) {
 			result := pluginScanner.IsBackendOnlyPlugin(c.name)
 
 			assert.Equal(t, c.isBackendOnly, result)
+		})
+	}
+}
+
+func TestPluginScanner_validateSignature(t *testing.T) {
+	origEnv := setting.Env
+	t.Cleanup(func() {
+		setting.Env = origEnv
+	})
+	setting.Env = setting.Prod
+
+	pluginScanner := &PluginScanner{
+		log: log.New("test-logger"),
+		cfg: &setting.Cfg{
+			PluginsIgnoreAllUnsigned: false,
+		},
+		requireSigned: true,
+	}
+
+	type testCase struct {
+		signature      PluginSignature
+		isBackend      bool
+		expectedResult *PluginError
+	}
+
+	for _, c := range []testCase{
+		{signature: PluginSignatureUnsigned, isBackend: true, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
+		{signature: PluginSignatureUnsigned, isBackend: false, expectedResult: nil},
+	} {
+		t.Run(fmt.Sprintf("Plugin testing"), func(t *testing.T) {
+			result := pluginScanner.validateSignature(&PluginBase{
+				Signature: c.signature,
+				Backend:   c.isBackend,
+			})
+			assert.Equal(t, c.expectedResult, result)
+		})
+	}
+}
+
+func TestPluginScanner_validateSignature2(t *testing.T) {
+	origEnv := setting.Env
+	t.Cleanup(func() {
+		setting.Env = origEnv
+	})
+	setting.Env = setting.Prod
+
+	pluginScanner := &PluginScanner{
+		log: log.New("test-logger"),
+		cfg: &setting.Cfg{
+			PluginsIgnoreAllUnsigned: true,
+		},
+		requireSigned: true,
+	}
+
+	type testCase struct {
+		signature      PluginSignature
+		isBackend      bool
+		expectedResult *PluginError
+	}
+
+	for _, c := range []testCase{
+		{signature: PluginSignatureUnsigned, isBackend: true, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
+		{signature: PluginSignatureUnsigned, isBackend: false, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
+	} {
+		t.Run(fmt.Sprintf("Plugin testing"), func(t *testing.T) {
+			result := pluginScanner.validateSignature(&PluginBase{
+				Signature: c.signature,
+				Backend:   c.isBackend,
+			})
+			assert.Equal(t, c.expectedResult, result)
 		})
 	}
 }

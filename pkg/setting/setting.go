@@ -262,6 +262,7 @@ type Cfg struct {
 	PluginsAppsSkipVerifyTLS bool
 	PluginSettings           PluginSettings
 	PluginsAllowUnsigned     []string
+	PluginsIgnoreAllUnsigned bool
 	MarketplaceURL           string
 	DisableSanitizeHtml      bool
 	EnterpriseLicensePath    string
@@ -788,6 +789,7 @@ func (cfg *Cfg) Load(args *CommandLineArgs) error {
 		plug = strings.TrimSpace(plug)
 		cfg.PluginsAllowUnsigned = append(cfg.PluginsAllowUnsigned, plug)
 	}
+	cfg.PluginsIgnoreAllUnsigned = pluginsSection.Key("ignore_all_unsigned_plugins").MustBool(false)
 	cfg.MarketplaceURL = pluginsSection.Key("marketplace_url").MustString("https://grafana.com/grafana/plugins/")
 	cfg.Protocol = Protocol
 
