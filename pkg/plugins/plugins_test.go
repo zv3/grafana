@@ -314,16 +314,16 @@ func TestPluginScanner_validateSignature(t *testing.T) {
 	}
 
 	type testCase struct {
-		signature      PluginSignature
+		signature      PluginSignatureStatus
 		isBackend      bool
 		expectedResult *PluginError
 	}
 
 	for _, c := range []testCase{
-		{signature: PluginSignatureUnsigned, isBackend: true, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
-		{signature: PluginSignatureUnsigned, isBackend: false, expectedResult: nil},
+		{signature: pluginSignatureUnsigned, isBackend: true, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
+		{signature: pluginSignatureUnsigned, isBackend: false, expectedResult: nil},
 	} {
-		t.Run(fmt.Sprintf("Plugin testing"), func(t *testing.T) {
+		t.Run("Plugin testing", func(t *testing.T) {
 			result := pluginScanner.validateSignature(&PluginBase{
 				Signature: c.signature,
 				Backend:   c.isBackend,
@@ -349,16 +349,16 @@ func TestPluginScanner_validateSignature_ignoreAll(t *testing.T) {
 	}
 
 	type testCase struct {
-		signature      PluginSignature
+		signature      PluginSignatureStatus
 		isBackend      bool
 		expectedResult *PluginError
 	}
 
 	for _, c := range []testCase{
-		{signature: PluginSignatureUnsigned, isBackend: true, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
-		{signature: PluginSignatureUnsigned, isBackend: false, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
+		{signature: pluginSignatureUnsigned, isBackend: true, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
+		{signature: pluginSignatureUnsigned, isBackend: false, expectedResult: &PluginError{ErrorCode: "signatureMissing", PluginID: ""}},
 	} {
-		t.Run(fmt.Sprintf("Plugin testing"), func(t *testing.T) {
+		t.Run("Plugin testing", func(t *testing.T) {
 			result := pluginScanner.validateSignature(&PluginBase{
 				Signature: c.signature,
 				Backend:   c.isBackend,

@@ -420,10 +420,13 @@ func (s *PluginScanner) validateSignature(plugin *PluginBase) *PluginError {
 			"state", plugin.Signature)
 	}
 
-	// if not specified to explicitly ignore and it's frontend OR it's not required to be signed - return as valid
-	// otherwise, we want to formally validate in the switch lock below
-	// NOTE: the state is calculated again when setting metadata on the object
-	if (!s.cfg.PluginsIgnoreAllUnsigned && !plugin.Backend) || !s.requireSigned {
+	// For the time being, we choose to only require back-end plugins to be signed
+	if !s.cfg.PluginsIgnoreAllUnsigned && !plugin.Backend {
+		return nil
+	}
+
+	// Ignore plugins in scanning paths that don't require signatures
+	if !s.requireSigned {
 		return nil
 	}
 
