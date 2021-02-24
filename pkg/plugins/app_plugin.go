@@ -1,7 +1,9 @@
 package plugins
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/grafana/grafana/pkg/plugins/backendplugin/grpcplugin"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util/errutil"
+	"gopkg.in/macaron.v1"
 )
 
 type AppPlugin struct {
@@ -70,7 +73,7 @@ func (app *AppPlugin) Load(decoder *json.Decoder, base *PluginBase, backendPlugi
 	if app.Backend {
 		cmd := ComposePluginStartCommand(app.Executable)
 		fullpath := filepath.Join(app.PluginDir, cmd)
-		factory := grpcplugin.NewBackendPlugin(app.Id, fullpath, grpcplugin.PluginStartFuncs{})
+		factory := grpcplugin.NewUnmanagedBackendPlugin(app.Id, fullpath, grpcplugin.PluginStartFuncs{})
 		if err := backendPluginManager.Register(app.Id, factory); err != nil {
 			return errutil.Wrapf(err, "failed to register backend plugin")
 		}
@@ -80,8 +83,11 @@ func (app *AppPlugin) Load(decoder *json.Decoder, base *PluginBase, backendPlugi
 	return nil
 }
 
-func (app *AppPlugin) initApp() {
-	app.initFrontendPlugin()
+func (app *AppPlugin) initApp(m *macaron.Macaron, backendPluginManager backendplugin.Manager) error {
+	if app.Initialized {
+		return nil
+	}
+	app.initFrontendPlugin(m)
 
 	// check if we have child panels
 	for _, panel := range Panels {
@@ -119,4 +125,12 @@ func (app *AppPlugin) initApp() {
 			app.DefaultNavUrl = setting.AppSubUrl + "/dashboard/db/" + include.Slug
 		}
 	}
+
+	if app.Backend {
+		err := backendPluginManager.StartPlugin(context.Background(), app.Id)
+		if err != nil {
+			return fmt.Errorf("problem encountered starting backend plugin %s : %w", app.Id, err)
+		}
+	}
+	return nil
 }

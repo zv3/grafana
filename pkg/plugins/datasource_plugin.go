@@ -1,7 +1,9 @@
 package plugins
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 
 	"github.com/grafana/grafana/pkg/infra/log"
@@ -11,6 +13,7 @@ import (
 	"github.com/grafana/grafana/pkg/plugins/datasource/wrapper"
 	"github.com/grafana/grafana/pkg/tsdb"
 	"github.com/grafana/grafana/pkg/util/errutil"
+	"gopkg.in/macaron.v1"
 )
 
 // DataSourcePlugin contains all metadata about a datasource plugin
@@ -46,7 +49,7 @@ func (p *DataSourcePlugin) Load(decoder *json.Decoder, base *PluginBase, backend
 	if p.Backend {
 		cmd := ComposePluginStartCommand(p.Executable)
 		fullpath := filepath.Join(p.PluginDir, cmd)
-		factory := grpcplugin.NewBackendPlugin(p.Id, fullpath, grpcplugin.PluginStartFuncs{
+		factory := grpcplugin.NewUnmanagedBackendPlugin(p.Id, fullpath, grpcplugin.PluginStartFuncs{
 			OnLegacyStart: p.onLegacyPluginStart,
 			OnStart:       p.onPluginStart,
 		})
@@ -74,5 +77,20 @@ func (p *DataSourcePlugin) onPluginStart(pluginID string, client *grpcplugin.Cli
 		})
 	}
 
+	return nil
+}
+
+func (p *DataSourcePlugin) initDatasourcePlugin(m *macaron.Macaron, backendPluginManager backendplugin.Manager) error {
+	if p.Initialized {
+		return nil
+	}
+	p.initFrontendPlugin(m)
+
+	if p.Backend {
+		err := backendPluginManager.StartPlugin(context.Background(), p.Id)
+		if err != nil {
+			return fmt.Errorf("problem encountered starting backend plugin %s : %w", p.Id, err)
+		}
+	}
 	return nil
 }

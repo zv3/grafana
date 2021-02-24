@@ -7,12 +7,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
 	"time"
 
+	httpstatic "github.com/grafana/grafana/pkg/api/static"
+	"gopkg.in/macaron.v1"
+
+	"github.com/fsnotify/fsnotify"
 	"github.com/grafana/grafana/pkg/infra/fs"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/infra/metrics"
@@ -53,6 +58,8 @@ type PluginManager struct {
 	Cfg                  *setting.Cfg          `inject:""`
 	log                  log.Logger
 	scanningErrors       []error
+
+	Macaron *macaron.Macaron
 
 	// AllowUnsignedPluginsCondition changes the policy for allowing unsigned plugins. Signature validation only runs when plugins are starting
 	// and running plugins will not be terminated if they violate the new policy.
@@ -103,8 +110,47 @@ func (pm *PluginManager) Init() error {
 		}
 	}
 
+	err = pm.initExternalPlugins()
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err = pm.setupPluginDirWatcher()
+		if err != nil {
+			pm.log.Error("failed to setup watcher", "error", err)
+		}
+	}()
+
+	return nil
+}
+
+func (pm *PluginManager) removePlugin(pluginId string) error {
+	plugin := Plugins[pluginId]
+	if plugin == nil {
+		pm.log.Error("Trying to delete a plugin that doesn't exist", "plugin", pluginId)
+		return fmt.Errorf("trying to delete a plugin that doesn't exist")
+	}
+
+	switch plugin.Type {
+	case "panel":
+		delete(Panels, pluginId)
+	case "datasource":
+		delete(DataSources, pluginId)
+	case "app":
+		delete(Apps, pluginId)
+	case "renderer":
+		Renderer = nil
+	}
+
+	delete(Plugins, pluginId)
+
+	return pm.BackendPluginManager.Unregister(pluginId)
+}
+
+func (pm *PluginManager) initExternalPlugins() error {
 	// check if plugins dir exists
-	exists, err = fs.Exists(pm.Cfg.PluginsPath)
+	exists, err := fs.Exists(pm.Cfg.PluginsPath)
 	if err != nil {
 		return err
 	}
@@ -127,19 +173,25 @@ func (pm *PluginManager) Init() error {
 	}
 
 	for _, panel := range Panels {
-		panel.initFrontendPlugin()
+		panel.initFrontendPlugin(pm.Macaron)
 	}
 
 	for _, ds := range DataSources {
-		ds.initFrontendPlugin()
+		err = ds.initDatasourcePlugin(pm.Macaron, pm.BackendPluginManager)
+		if err != nil {
+			pm.log.Error("Problem encountered initializating datasource plugin", "error", err)
+		}
 	}
 
 	for _, app := range Apps {
-		app.initApp()
+		err = app.initApp(pm.Macaron, pm.BackendPluginManager)
+		if err != nil {
+			pm.log.Error("Problem encountered initializating app plugin", "error", err)
+		}
 	}
 
 	if Renderer != nil {
-		Renderer.initFrontendPlugin()
+		Renderer.initFrontendPlugin(pm.Macaron)
 	}
 
 	for _, p := range Plugins {
@@ -148,9 +200,29 @@ func (pm *PluginManager) Init() error {
 		} else {
 			metrics.SetPluginBuildInformation(p.Id, p.Type, p.Info.Version)
 		}
+
+		if p.Backend && !p.Initialized {
+			err := pm.BackendPluginManager.StartPlugin(context.Background(), p.Id)
+			if err != nil {
+				pm.log.Error("Problem encountered starting backend plugin", "plugin", p.Id)
+			}
+		}
 	}
 
 	return nil
+}
+
+func AddRoute(m *macaron.Macaron, pluginDir string, pluginId string) {
+	m.Use(httpstatic.Static(
+		pluginDir,
+		httpstatic.StaticOptions{
+			SkipLogging: true,
+			Prefix:      path.Join("/public/plugins/", pluginId),
+			AddHeaders: func(c *macaron.Context) {
+				c.Resp.Header().Set("Cache-Control", "public, max-age=3600")
+			},
+		},
+	))
 }
 
 func (pm *PluginManager) Run(ctx context.Context) error {
@@ -364,6 +436,11 @@ func (s *PluginScanner) loadPlugin(pluginJSONFilePath string) error {
 		return err
 	}
 
+	if _, exists := Plugins[pluginCommon.Id]; exists {
+		s.log.Warn("Skipping plugin as it's already installed", "plugin", pluginCommon.Id)
+		return nil
+	}
+
 	if pluginCommon.Id == "" || pluginCommon.Type == "" {
 		return errors.New("did not find type or id properties in plugin.json")
 	}
@@ -538,4 +615,63 @@ func collectPluginFilesWithin(rootDir string) ([]string, error) {
 		return nil
 	})
 	return files, err
+}
+
+func (pm *PluginManager) setupPluginDirWatcher() error {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		pm.log.Error("Error occurred when creating watcher", err)
+	}
+	defer func() {
+		if err := watcher.Close(); err != nil {
+			pm.log.Error("error occurred when closing watcher", err)
+		}
+	}()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Op&fsnotify.Create == fsnotify.Create {
+					pluginId := filepath.Base(event.Name)
+					pm.log.Info("Adding plugin", "plugin", pluginId)
+
+					time.Sleep(time.Second * 3)
+
+					err = pm.initExternalPlugins()
+					if err != nil {
+						pm.log.Error("Error occurred when installing plugins during reload", "error", err)
+					}
+				}
+
+				if event.Op&fsnotify.Remove == fsnotify.Remove {
+					pluginId := filepath.Base(event.Name)
+					pm.log.Info("Removing plugin", "plugin", pluginId)
+
+					time.Sleep(time.Second * 3)
+
+					err = pm.removePlugin(pluginId)
+					if err != nil {
+						pm.log.Error("Error occurred when uninstalling plugin", "error", err)
+					}
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				pm.log.Error("error:", err)
+			}
+		}
+	}()
+
+	if err = watcher.Add(pm.Cfg.PluginsPath); err != nil {
+		pm.log.Error("Error adding watcher for directory", "dir", pm.Cfg.PluginsPath, "error", err)
+	}
+
+	<-done
+	return nil
 }

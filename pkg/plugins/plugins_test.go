@@ -269,6 +269,19 @@ type fakeBackendPluginManager struct {
 	registeredPlugins []string
 }
 
+func (f *fakeBackendPluginManager) Unregister(pluginID string) error {
+	var result []string
+
+	for _, existingPlugin := range f.registeredPlugins {
+		if pluginID != existingPlugin {
+			result = append(result, pluginID)
+		}
+	}
+
+	f.registeredPlugins = result
+	return nil
+}
+
 func (f *fakeBackendPluginManager) Register(pluginID string, factory backendplugin.PluginFactoryFunc) error {
 	f.registeredPlugins = append(f.registeredPlugins, pluginID)
 	return nil

@@ -94,6 +94,22 @@ func NewBackendPlugin(pluginID, executablePath string, startFns PluginStartFuncs
 	})
 }
 
+// NewUnmanagedBackendPlugin creates a new unmanaged backend plugin factory used for registering a backend plugin.
+func NewUnmanagedBackendPlugin(pluginID, executablePath string, startFns PluginStartFuncs) backendplugin.PluginFactoryFunc {
+	return newPlugin(PluginDescriptor{
+		pluginID:       pluginID,
+		executablePath: executablePath,
+		managed:        false,
+		versionedPlugins: map[int]goplugin.PluginSet{
+			DefaultProtocolVersion: {
+				pluginID: &datasourceV1.DatasourcePluginImpl{},
+			},
+			grpcplugin.ProtocolVersion: getV2PluginSet(),
+		},
+		startFns: startFns,
+	})
+}
+
 // NewRendererPlugin creates a new renderer plugin factory used for registering a backend renderer plugin.
 func NewRendererPlugin(pluginID, executablePath string, startFns PluginStartFuncs) backendplugin.PluginFactoryFunc {
 	return newPlugin(PluginDescriptor{

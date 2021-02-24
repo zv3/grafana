@@ -91,6 +91,7 @@ func (hs *HTTPServer) Init() error {
 
 	hs.macaron = hs.newMacaron()
 	hs.registerRoutes()
+	hs.PluginManager.Macaron = hs.macaron // hack to pass macaron instance to PM
 
 	return nil
 }

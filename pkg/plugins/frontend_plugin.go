@@ -8,13 +8,17 @@ import (
 
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util"
+	"gopkg.in/macaron.v1"
 )
 
 type FrontendPluginBase struct {
 	PluginBase
 }
 
-func (fp *FrontendPluginBase) initFrontendPlugin() {
+func (fp *FrontendPluginBase) initFrontendPlugin(m *macaron.Macaron) {
+	if fp.Initialized {
+		return
+	}
 	if isExternalPlugin(fp.PluginDir) {
 		StaticRoutes = append(StaticRoutes, &PluginStaticRoute{
 			Directory: fp.PluginDir,
@@ -30,6 +34,9 @@ func (fp *FrontendPluginBase) initFrontendPlugin() {
 	for i := 0; i < len(fp.Info.Screenshots); i++ {
 		fp.Info.Screenshots[i].Path = evalRelativePluginUrlPath(fp.Info.Screenshots[i].Path, fp.BaseUrl)
 	}
+	fp.Initialized = true
+
+	AddRoute(m, fp.PluginDir, fp.Id)
 }
 
 func getPluginLogoUrl(pluginType, path, baseUrl string) string {

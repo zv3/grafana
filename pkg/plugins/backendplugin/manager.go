@@ -38,6 +38,8 @@ func init() {
 
 // Manager manages backend plugins.
 type Manager interface {
+	// Unregister unregisters a backend plugin
+	Unregister(pluginID string) error
 	// Register registers a backend plugin
 	Register(pluginID string, factory PluginFactoryFunc) error
 	// StartPlugin starts a non-managed backend plugin
@@ -118,6 +120,26 @@ func (m *manager) Register(pluginID string, factory PluginFactoryFunc) error {
 
 	m.plugins[pluginID] = plugin
 	m.logger.Debug("Backend plugin registered", "pluginId", pluginID)
+	return nil
+}
+
+func (m *manager) Unregister(pluginID string) error {
+	m.logger.Debug("Unregistering backend plugin", "pluginId", pluginID)
+	m.pluginsMu.Lock()
+	defer m.pluginsMu.Unlock()
+
+	p, exists := m.plugins[pluginID]
+	if !exists {
+		return fmt.Errorf("backend plugin %s is not registered", pluginID)
+	}
+
+	if err := p.Stop(context.Background()); err != nil {
+		return err
+	}
+
+	delete(m.plugins, pluginID)
+
+	m.logger.Debug("Backend plugin unregistered", "pluginId", pluginID)
 	return nil
 }
 
