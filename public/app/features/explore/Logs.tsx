@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react';
 import { css } from 'emotion';
 import { capitalize } from 'lodash';
+import { saveAs } from 'file-saver';
+import moment from 'moment';
 
 import {
   rangeUtil,
@@ -214,6 +216,34 @@ export class UnthemedLogs extends PureComponent<Props, State> {
     });
   };
 
+  download(rows: LogRowModel[]) {
+    const { logsMeta } = this.props;
+    let textToDownload = '';
+    const metaInfo = logsMeta
+      ?.map((meta) => {
+        console.log(meta.value);
+        return `${meta.label}: ${meta.value}`;
+      })
+      ?.join(' ');
+
+    let logRows = '';
+    rows.forEach((row) => {
+      let time = `${moment.unix(row.timeEpochMs / 1000).format()} \t`;
+      let labels;
+      for (const [key, value] of Object.entries(row.labels)) {
+        labels = labels + ', ' + key + '=' + value;
+      }
+      labels ? (labels = '{' + labels + '}' + '\t') : (labels = '');
+      logRows = logRows + '\n' + time + labels + row.entry;
+    });
+    textToDownload = textToDownload + `${metaInfo ? metaInfo : ''}`;
+    textToDownload = textToDownload + logRows;
+    var blob = new Blob([textToDownload], {
+      type: 'text/plain;charset=utf-8',
+    });
+    saveAs(blob, `logs.txt`);
+  }
+
   render() {
     const {
       logRows,
@@ -304,16 +334,26 @@ export class UnthemedLogs extends PureComponent<Props, State> {
               />
             </InlineField>
           </InlineFieldRow>
-          <Button
-            variant="secondary"
-            disabled={isFlipping}
-            title={logsSortOrder === LogsSortOrder.Ascending ? 'Change to newest first' : 'Change to oldest first'}
-            aria-label="Flip results order"
-            className={styles.flipButton}
-            onClick={this.onChangeLogsSortOrder}
-          >
-            {isFlipping ? 'Flipping...' : 'Flip results order'}
-          </Button>
+          <div>
+            <Button
+              variant="secondary"
+              disabled={isFlipping}
+              title={logsSortOrder === LogsSortOrder.Ascending ? 'Change to newest first' : 'Change to oldest first'}
+              aria-label="Flip results order"
+              className={styles.leftButtons}
+              onClick={this.onChangeLogsSortOrder}
+            >
+              {isFlipping ? 'Flipping...' : 'Flip results order'}
+            </Button>
+            <Button
+              icon="download-alt"
+              variant="secondary"
+              title="Download logs"
+              aria-label="Download logs"
+              className={styles.leftButtons}
+              onClick={() => this.download(dedupedRows || logRows)}
+            />
+          </div>
         </div>
 
         {meta && (
@@ -409,7 +449,7 @@ const getStyles = stylesFactory((theme: GrafanaTheme) => {
       margin: ${theme.spacing.md} 0 ${theme.spacing.sm};
       border: 1px solid ${theme.colors.panelBorder};
     `,
-    flipButton: css`
+    leftButtons: css`
       margin: ${theme.spacing.xs} 0 0 ${theme.spacing.sm};
     `,
     radioButtons: css`
