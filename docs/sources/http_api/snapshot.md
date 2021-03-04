@@ -21,39 +21,40 @@ aliases = ["/docs/grafana/latest/http_api/snapshot/"]
 
     {
       "dashboard": {
-        "editable":false,
-        "hideControls":true,
-        "nav":[
-        {
-          "enable":false,
-        "type":"timepicker"
-        }
-        ],
-        "rows": [
+        "links": [],
+        "panels": [],
+        "schemaVersion": 27,
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "timepicker": {},
+        "title": "Empty dashboard",
+        "uid": "_abc123",
+        "version": 1,
+        "hideControls": true,
+        "nav": [
           {
-
+            "enable": false,
+            "type": "timepicker"
           }
         ],
-        "style":"dark",
-        "tags":[],
-        "templating":{
-          "list":[
-          ]
+        "rows": [{}],
+        "style": "dark",
+        "tags": [],
+        "templating": {
+          "list": []
         },
-        "time":{
-        },
-        "timezone":"browser",
-        "title":"Home",
-        "version":5
-        },
-      "expires": 3600
+        "timezone": "browser"
+      },
+      "expires": 300
     }
 ```
 
 JSON Body schema:
 
 - **dashboard** – Required. The complete dashboard model.
-- **name** – Optional. snapshot name
+- **name** – Optional. Snapshot name.
 - **expires** - Optional. When the snapshot should expire in seconds. 3600 is 1 hour, 86400 is 1 day. Default is never to expire.
 - **external** - Optional. Save the snapshot on an external server rather than locally. Default is `false`.
 - **key** - Optional. Define the unique key. Required if **external** is `true`.
