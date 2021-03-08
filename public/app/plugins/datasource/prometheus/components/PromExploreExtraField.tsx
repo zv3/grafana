@@ -40,6 +40,7 @@ export const PromExploreExtraField: React.FC<PromExploreExtraFieldProps> = memo(
         >
           <InlineFormLabel
             width="auto"
+            tooltipPlacement="right"
             tooltip="Choose the type of query you would like to run. An instant query queries against a single point in time. A range query queries over a range of time. With both, you'll run two queries - one instant and one range. "
           >
             Query type

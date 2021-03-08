@@ -81,6 +81,7 @@ export function LokiOptionFields(props: LokiOptionFieldsProps) {
       >
         <InlineFormLabel
           tooltip="Choose the type of query you would like to run. An instant query queries against a single point in time. A range query queries over a range of time."
+          tooltipPlacement="right"
           width="auto"
         >
           Query type

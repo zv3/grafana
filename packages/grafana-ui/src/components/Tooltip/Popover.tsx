@@ -15,7 +15,7 @@ const defaultTransitionStyles = {
 const transitionStyles: { [key: string]: object } = {
   exited: { opacity: 0 },
   entering: { opacity: 0 },
-  entered: { opacity: 1, transitionDelay: '0s' },
+  entered: { opacity: 1, transitionDelay: '500ms' },
   exiting: { opacity: 0, transitionDelay: '500ms' },
 };
 
