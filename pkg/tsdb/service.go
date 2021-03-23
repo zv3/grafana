@@ -24,8 +24,8 @@ import (
 )
 
 // NewService returns a new Service.
-func NewService() Service {
-	return Service{
+func NewService() *Service {
+	return &Service{
 		registry: map[string]func(*models.DataSource) (plugins.DataPlugin, error){},
 	}
 }
@@ -34,7 +34,7 @@ func init() {
 	svc := NewService()
 	registry.Register(&registry.Descriptor{
 		Name:     "DataService",
-		Instance: &svc,
+		Instance: svc,
 	})
 }
 

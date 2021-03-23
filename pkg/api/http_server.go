@@ -30,7 +30,6 @@ import (
 	"github.com/grafana/grafana/pkg/plugins/backendplugin"
 	_ "github.com/grafana/grafana/pkg/plugins/backendplugin/manager"
 	"github.com/grafana/grafana/pkg/plugins/plugindashboards"
-	"github.com/grafana/grafana/pkg/registry"
 	"github.com/grafana/grafana/pkg/services/alerting"
 	"github.com/grafana/grafana/pkg/services/contexthandler"
 	"github.com/grafana/grafana/pkg/services/datasourceproxy"
@@ -50,14 +49,6 @@ import (
 	"github.com/grafana/grafana/pkg/util/errutil"
 )
 
-func init() {
-	registry.Register(&registry.Descriptor{
-		Name:         "HTTPServer",
-		Instance:     &HTTPServer{},
-		InitPriority: registry.High,
-	})
-}
-
 type HTTPServer struct {
 	log         log.Logger
 	macaron     *macaron.Macaron
@@ -65,10 +56,10 @@ type HTTPServer struct {
 	httpSrv     *http.Server
 	middlewares []macaron.Handler
 
-	RouteRegister          routing.RouteRegister                   `inject:""`
-	Bus                    bus.Bus                                 `inject:""`
-	RenderService          rendering.Service                       `inject:""`
-	Cfg                    *setting.Cfg                            `inject:""`
+	RouteRegister          routing.RouteRegister
+	Bus                    bus.Bus
+	RenderService          rendering.Service
+	Cfg                    *setting.Cfg
 	HooksService           *hooks.HooksService                     `inject:""`
 	CacheService           *localcache.CacheService                `inject:""`
 	DatasourceCache        datasources.CacheService                `inject:""`
@@ -94,13 +85,32 @@ type HTTPServer struct {
 	Listener               net.Listener
 }
 
-func (hs *HTTPServer) Init() error {
-	hs.log = log.New("http.server")
+type ServerOptions struct {
+	Listener net.Listener
+}
 
-	hs.macaron = hs.newMacaron()
+func ProvideHTTPServer(opts ServerOptions, cfg *setting.Cfg, routeRegister routing.RouteRegister, bus bus.Bus,
+	renderService rendering.Service) *HTTPServer {
+	macaron.Env = cfg.Env
+	m := macaron.New()
+	// automatically set HEAD for every GET
+	m.SetAutoHead(true)
+
+	hs := &HTTPServer{
+		Cfg:           cfg,
+		RouteRegister: routeRegister,
+		Bus:           bus,
+		RenderService: renderService,
+		log:           log.New("http.server"),
+		macaron:       m,
+		Listener:      opts.Listener,
+	}
+	if hs.Listener != nil {
+		hs.log.Debug("Using provided listener")
+	}
 	hs.registerRoutes()
 
-	return nil
+	return hs
 }
 
 func (hs *HTTPServer) AddMiddleware(middleware macaron.Handler) {
@@ -287,16 +297,6 @@ func (hs *HTTPServer) configureHttp2() error {
 	hs.httpSrv.TLSConfig = tlsCfg
 
 	return nil
-}
-
-func (hs *HTTPServer) newMacaron() *macaron.Macaron {
-	macaron.Env = hs.Cfg.Env
-	m := macaron.New()
-
-	// automatically set HEAD for every GET
-	m.SetAutoHead(true)
-
-	return m
 }
 
 func (hs *HTTPServer) applyRoutes() {

@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/grafana/grafana/pkg/api"
 	"github.com/grafana/grafana/pkg/extensions"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/infra/metrics"
@@ -148,11 +149,13 @@ func executeServer(configFile, homePath, pidFile, packaging string, traceDiagnos
 
 	metrics.SetBuildInformation(version, commit, buildBranch)
 
-	s, err := server.New(server.Config{
-		ConfigFile: configFile, HomePath: homePath, PidFile: pidFile,
-		Version: version, Commit: commit, BuildBranch: buildBranch,
-	})
+	s, err := initializeServer(setting.CommandLineArgs{
+		Config: configFile, HomePath: homePath, Args: flag.Args(),
+	}, server.Options{
+		PidFile: pidFile, Version: version, Commit: commit, BuildBranch: buildBranch,
+	}, api.ServerOptions{})
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to start grafana. error: %s\n", err.Error())
 		return err
 	}
 

@@ -423,7 +423,11 @@ func InitTestDB(t ITestDB, opts ...InitTestDBOpt) *SQLStore {
 		}
 
 		// set test db config
-		testSQLStore.Cfg = setting.NewCfg()
+		var err error
+		testSQLStore.Cfg, err = setting.NewCfg(setting.CommandLineArgs{})
+		if err != nil {
+			t.Fatalf("Failed to create configuration: %s", err.Error())
+		}
 		sec, err := testSQLStore.Cfg.Raw.NewSection("database")
 		if err != nil {
 			t.Fatalf("Failed to create section: %s", err)

@@ -1,5 +1,6 @@
 [run]
 init_cmds = [
+  ["wire", "./pkg/cmd/grafana-server"],
   ["go", "run", "build.go", "-dev", "build-cli"],
   ["go", "run", "build.go", "-dev", "build-server"],
   ["./bin/grafana-server", "-packaging=dev", "cfg:app_mode=development"]

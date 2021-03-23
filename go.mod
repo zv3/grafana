@@ -39,6 +39,7 @@ require (
 	github.com/golang/protobuf v1.5.1
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.2.0
+	github.com/google/wire v0.5.0 // indirect
 	github.com/gosimple/slug v1.9.0
 	github.com/grafana/alerting-api v0.0.0-20210318231719-9499804fc548
 	github.com/grafana/grafana-aws-sdk v0.2.0
