@@ -8,11 +8,11 @@ import { guessFieldTypeFromNameAndValue } from './processDataFrame';
  * @alpha
  */
 export interface DataFrameJSON {
-  /**HACK: this will get removed, but will help transition telegraf streaming
-   *
-   * In telegraf, this will be: ${name}${labels}
+  /**
+   * An identifier for the schema this message expects.  For streaming messages,
+   * this can be used to verify that the client schema matches the server schema
    */
-  key?: string;
+  schemaId?: string;
 
   /**
    * The schema defines the field type and configuration.
@@ -22,13 +22,30 @@ export interface DataFrameJSON {
   /**
    * The field data
    */
-  data?: DataFrameData;
+  data?: DataFrameData[];
+
+  /**
+   * Append changes to the fields identified by the key.
+   * The key is name+labels within the client frames
+   * The length of all values must be equal
+   */
+  changes?: Record<string, any[]>;
 }
 
 /**
  * @alpha
  */
 export interface DataFrameData {
+  /**
+   * Apply the data to a frame with this label set
+   */
+  stream?: Labels;
+
+  /**
+   * Indicates that some values were droped from the result
+   */
+  dropped_values?: boolean;
+
   /**
    * A columnar store that matches fields defined by schema.
    */
@@ -43,20 +60,18 @@ export interface DataFrameData {
   /**
    * Holds value bases per field so we can encode numbers from fixed points
    * e.g. [1612900958, 1612900959, 1612900960] -> 1612900958 + [0, 1, 2]
+   *
+   * NOTE: not used yet
    */
   bases?: number[];
 
   /**
    * Holds value multipliers per field so we can encode large numbers concisely
    * e.g. [4900000000, 35000000000] -> 1e9 + [4.9, 35]
+   *
+   * NOTE: not used yet
    */
   factors?: number[];
-
-  /**
-   * Holds enums per field so we can encode recurring values as ints
-   * e.g. ["foo", "foo", "baz", "foo"] -> ["foo", "baz"] + [0,0,1,0]
-   */
-  enums?: any[][];
 }
 
 /**
@@ -151,11 +166,13 @@ function guessFieldType(name: string, values: any[]): FieldType {
  * @alpha
  */
 export function dataFrameFromJSON(dto: DataFrameJSON): DataFrame {
-  const { schema, data } = dto;
+  const { schema } = dto;
 
   if (!schema || !schema.fields) {
     throw new Error('JSON needs a fields definition');
   }
+
+  const data = dto.data![0]; // HACK!!!
 
   // Find the longest field length
   const length = data ? data.values.reduce((max, vals) => Math.max(max, vals.length), 0) : 0;

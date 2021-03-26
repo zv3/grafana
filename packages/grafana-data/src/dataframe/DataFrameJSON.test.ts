@@ -2,6 +2,80 @@ import { FieldType } from '../types/dataFrame';
 import { DataFrameJSON, dataFrameFromJSON } from './DataFrameJSON';
 
 describe('DataFrame JSON', () => {
+  describe('simple frame', () => {
+    const json: DataFrameJSON = {
+      schemaId: 'AAA',
+      schema: {
+        fields: [
+          { name: 'time', type: FieldType.time },
+          { name: 'value', type: FieldType.number },
+        ],
+      },
+      data: [
+        {
+          values: [
+            [100, 200, 300],
+            [1, 2, 3],
+          ],
+        },
+      ],
+    };
+
+    console.log(JSON.stringify(json, undefined, 2));
+  });
+
+  describe('same structure, different tags', () => {
+    const json: DataFrameJSON = {
+      schemaId: 'AAA',
+      schema: {
+        fields: [
+          { name: 'time', type: FieldType.time },
+          { name: 'value', type: FieldType.number },
+        ],
+      },
+      data: [
+        {
+          stream: { cpu: '1', host: 'abc' },
+          values: [
+            [100, 200, 300],
+            [1, 2, 3],
+          ],
+        },
+        {
+          stream: { cpu: '2', host: 'abc' },
+          values: [
+            [100, 200, 300],
+            [4, 5, 6],
+          ],
+        },
+      ],
+    };
+
+    console.log(JSON.stringify(json, undefined, 2));
+  });
+
+  describe('using changes', () => {
+    const json: DataFrameJSON = {
+      schemaId: 'AAA',
+      schema: {
+        fields: [
+          { name: 'time', type: FieldType.time },
+          { name: 'sensorA', type: FieldType.number },
+          { name: 'sensorB', type: FieldType.number },
+          { name: 'sensorC', type: FieldType.number },
+          { name: 'sensorD', type: FieldType.number },
+        ],
+      },
+      // implies that all other values stayed the same
+      changes: {
+        time: [100],
+        sensorA: [2],
+      },
+    };
+
+    console.log(JSON.stringify(json, undefined, 2));
+  });
+
   describe('when called with a DataFrame', () => {
     it('should decode values not supported natively in JSON (e.g. NaN, Infinity)', () => {
       const json: DataFrameJSON = {
@@ -12,18 +86,20 @@ describe('DataFrame JSON', () => {
             { name: 'value', type: FieldType.number },
           ],
         },
-        data: {
-          values: [
-            [100, 200, 300],
-            ['a', 'b', 'c'],
-            [1, 2, 3],
-          ],
-          entities: [
-            null, // nothing to replace, but keeps the index
-            { NaN: [0], Inf: [1], Undef: [2] },
-            { NegInf: [2] },
-          ],
-        },
+        data: [
+          {
+            values: [
+              [100, 200, 300],
+              ['a', 'b', 'c'],
+              [1, 2, 3],
+            ],
+            entities: [
+              null, // nothing to replace, but keeps the index
+              { NaN: [0], Inf: [1], Undef: [2] },
+              { NegInf: [2] },
+            ],
+          },
+        ],
       };
 
       const frame = dataFrameFromJSON(json);
