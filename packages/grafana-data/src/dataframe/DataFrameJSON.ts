@@ -39,7 +39,7 @@ export interface DataFrameData {
   /**
    * Apply the data to a frame with this label set
    */
-  stream?: Labels;
+  labels?: Labels;
 
   /**
    * Indicates that some values were droped from the result

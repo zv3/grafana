@@ -35,14 +35,14 @@ describe('DataFrame JSON', () => {
       },
       data: [
         {
-          stream: { cpu: '1', host: 'abc' },
+          labels: { cpu: '1', host: 'abc' },
           values: [
             [100, 200, 300],
             [1, 2, 3],
           ],
         },
         {
-          stream: { cpu: '2', host: 'abc' },
+          labels: { cpu: '2', host: 'abc' },
           values: [
             [100, 200, 300],
             [4, 5, 6],
