@@ -33,6 +33,7 @@ import (
 	"github.com/grafana/grafana/pkg/services/datasourceproxy"
 	"github.com/grafana/grafana/pkg/services/datasources"
 	"github.com/grafana/grafana/pkg/services/hooks"
+	"github.com/grafana/grafana/pkg/services/jwt"
 	"github.com/grafana/grafana/pkg/services/librarypanels"
 	"github.com/grafana/grafana/pkg/services/live"
 	"github.com/grafana/grafana/pkg/services/live/push"
@@ -76,6 +77,7 @@ type HTTPServer struct {
 	CacheService           *localcache.CacheService                `inject:""`
 	DatasourceCache        datasources.CacheService                `inject:""`
 	AuthTokenService       models.UserTokenService                 `inject:""`
+	JWTTokenService        jwt.Service                             `inject:""`
 	QuotaService           *quota.QuotaService                     `inject:""`
 	RemoteCacheService     *remotecache.RemoteCache                `inject:""`
 	ProvisioningService    provisioning.ProvisioningService        `inject:""`

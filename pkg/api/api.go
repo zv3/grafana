@@ -442,6 +442,9 @@ func (hs *HTTPServer) registerRoutes() {
 		adminRoute.Get("/ldap/status", routing.Wrap(hs.GetLDAPStatus))
 	}, reqGrafanaAdmin)
 
+	// JWT Keys
+	r.Get("/api/keys", hs.JWTTokenService.HandlePublicKeys)
+
 	// rendering
 	r.Get("/render/*", reqSignedIn, hs.RenderToPng)
 

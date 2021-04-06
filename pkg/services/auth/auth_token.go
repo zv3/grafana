@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/registry"
+	"github.com/grafana/grafana/pkg/services/jwt"
 	"github.com/grafana/grafana/pkg/services/sqlstore"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util"
@@ -35,6 +36,7 @@ const urgentRotateTime = 1 * time.Minute
 type UserAuthTokenService struct {
 	SQLStore          *sqlstore.SQLStore            `inject:""`
 	ServerLockService *serverlock.ServerLockService `inject:""`
+	JWTTokenService   jwt.Service                   `inject:""`
 	Cfg               *setting.Cfg                  `inject:""`
 	log               log.Logger
 }
@@ -61,7 +63,8 @@ func (s *UserAuthTokenService) ActiveTokenCount(ctx context.Context) (int64, err
 }
 
 func (s *UserAuthTokenService) CreateToken(ctx context.Context, user *models.User, clientIP net.IP, userAgent string) (*models.UserToken, error) {
-	token, err := util.RandomHex(16)
+	token, err := s.JWTTokenService.NewGrafanaAccessToken(ctx, user)
+
 	if err != nil {
 		return nil, err
 	}
