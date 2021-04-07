@@ -109,8 +109,14 @@ func (pm *PluginManager) Init() error {
 		}
 	}
 
+	err = pm.initExternalPlugins()
+
+	return err
+}
+
+func (pm *PluginManager) initExternalPlugins() error {
 	// check if plugins dir exists
-	exists, err = fs.Exists(pm.Cfg.PluginsPath)
+	exists, err := fs.Exists(pm.Cfg.PluginsPath)
 	if err != nil {
 		return err
 	}
@@ -161,6 +167,29 @@ func (pm *PluginManager) Init() error {
 	}
 
 	return nil
+}
+
+func (pm *PluginManager) removePlugin(pluginId string) error {
+	plugin := pm.plugins[pluginId]
+	if plugin == nil {
+		pm.log.Error("Trying to delete a plugin that doesn't exist", "plugin", pluginId)
+		return fmt.Errorf("trying to delete a plugin that doesn't exist")
+	}
+
+	switch plugin.Type {
+	case "panel":
+		delete(pm.panels, pluginId)
+	case "datasource":
+		delete(pm.dataSources, pluginId)
+	case "app":
+		delete(pm.apps, pluginId)
+	case "renderer":
+		pm.renderer = nil
+	}
+
+	delete(pm.plugins, pluginId)
+
+	return pm.BackendPluginManager.Unregister(pluginId)
 }
 
 func (pm *PluginManager) Run(ctx context.Context) error {
@@ -487,6 +516,8 @@ func (s *PluginScanner) loadPlugin(pluginJSONFilePath string) error {
 	if err := jsonParser.Decode(&pluginCommon); err != nil {
 		return err
 	}
+
+	// check if already installed
 
 	if pluginCommon.Id == "" || pluginCommon.Type == "" {
 		return errors.New("did not find type or id properties in plugin.json")
