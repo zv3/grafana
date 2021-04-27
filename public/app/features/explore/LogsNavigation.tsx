@@ -20,7 +20,7 @@ type Props = {
   loading: boolean;
   visibleRange?: AbsoluteTimeRange;
   logsSortOrder?: LogsSortOrder | null;
-  onChangeTime: (range: AbsoluteTimeRange) => void;
+  onChangeTime: (from: number, to: number, queries: DataQuery[]) => void;
 };
 
 type LogsPage = {
@@ -46,7 +46,7 @@ function LogsNavigation({
 
   const changeTime = ({ from, to }: AbsoluteTimeRange) => {
     setExpectedRange({ from, to });
-    onChangeTime({ from, to });
+    onChangeTime(from, to, queries);
   };
 
   const sortPages = (a: LogsPage, b: LogsPage, logsSortOrder?: LogsSortOrder | null) => {
