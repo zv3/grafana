@@ -64,6 +64,7 @@ type HTTPServer struct {
 	Bus                    bus.Bus
 	RenderService          rendering.Service
 	Cfg                    *setting.Cfg
+	SettingsProvider       setting.Provider                        `inject:""`
 	HooksService           *hooks.HooksService                     `inject:""`
 	CacheService           *localcache.CacheService                `inject:""`
 	DatasourceCache        datasources.CacheService                `inject:""`
