@@ -20,7 +20,7 @@ type Props = {
   loading: boolean;
   visibleRange?: AbsoluteTimeRange;
   logsSortOrder?: LogsSortOrder | null;
-  onChangeTime: (from: number, to: number, queries: DataQuery[]) => void;
+  onChangeTime: ({ from, to }: AbsoluteTimeRange, queries: DataQuery[]) => void;
 };
 
 type LogsPage = {
@@ -45,8 +45,9 @@ function LogsNavigation({
   const [expectedQueries, setExpectedQueries] = useState<DataQuery[]>([]);
 
   const changeTime = ({ from, to }: AbsoluteTimeRange) => {
+    console.log(from, to);
     setExpectedRange({ from, to });
-    onChangeTime(from, to, queries);
+    onChangeTime({ from, to }, queries);
   };
 
   const sortPages = (a: LogsPage, b: LogsPage, logsSortOrder?: LogsSortOrder | null) => {
@@ -123,7 +124,10 @@ function LogsNavigation({
           variant="secondary"
           onClick={() => {
             // the range is based on initally selected range
-            changeTime({ from: visibleRange.from - requestRange, to: visibleRange.from });
+            const range = { from: visibleRange.from - requestRange, to: visibleRange.from };
+            console.log('requestRange', requestRange);
+
+            changeTime(range);
           }}
           disabled={loading}
         >

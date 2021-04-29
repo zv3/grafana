@@ -1,8 +1,7 @@
 import React, { PureComponent } from 'react';
 import { css } from '@emotion/css';
-import { capitalize, isEqual } from 'lodash';
+import { capitalize } from 'lodash';
 import memoizeOne from 'memoize-one';
-import LRU from 'lru-cache';
 
 import {
   rangeUtil,
@@ -79,7 +78,7 @@ interface Props {
   dedupStrategy: LogsDedupStrategy;
   queries: DataQuery[];
   showContextToggle?: (row?: LogRowModel) => boolean;
-  onChangeTime: (range: AbsoluteTimeRange) => void;
+  onChangeTime: (range: AbsoluteTimeRange, query?: DataQuery[]) => void;
   onClickFilterLabel?: (key: string, value: string) => void;
   onClickFilterOutLabel?: (key: string, value: string) => void;
   onStartScanning?: () => void;
@@ -103,7 +102,6 @@ interface State {
 export class UnthemedLogs extends PureComponent<Props, State> {
   flipOrderTimer: NodeJS.Timeout;
   cancelFlippingTimer: NodeJS.Timeout;
-  private labelsCache = new LRU<string, LogRowModel[]>(5);
 
   state: State = {
     showLabels: store.getBool(SETTINGS_KEYS.showLabels, false),
@@ -118,25 +116,6 @@ export class UnthemedLogs extends PureComponent<Props, State> {
   componentWillUnmount() {
     clearTimeout(this.flipOrderTimer);
     clearTimeout(this.cancelFlippingTimer);
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    const {
-      queries,
-      logRows,
-      absoluteRange: { from, to },
-    } = this.props;
-    if (logRows && isEqual(logRows, prevProps.logRows)) {
-      const params = {
-        from,
-        to,
-        queries: queries.map((q) => q.key),
-      };
-      const cacheKey = Object.entries(params)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v.toString())}`)
-        .join('&');
-      this.labelsCache.set(cacheKey, logRows);
-    }
   }
 
   onChangeLogsSortOrder = () => {
@@ -253,26 +232,6 @@ export class UnthemedLogs extends PureComponent<Props, State> {
   checkUnescapedContent = memoizeOne((logRows: LogRowModel[]) => {
     return !!logRows.some((r) => r.hasUnescapedContent);
   });
-
-  changeTime = (from: number, to: number, queries: DataQuery[]) => {
-    const params = {
-      from,
-      to,
-      queries: queries.map((q) => q.key),
-    };
-
-    const cacheKey = Object.entries(params)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v.toString())}`)
-      .join('&');
-
-    let logRows = this.labelsCache.get(cacheKey);
-    console.log('cacheKey', cacheKey);
-    console.log('logRows', logRows);
-    if (!logRows) {
-      this.props.onChangeTime({ from, to });
-    }
-    return logRows;
-  };
 
   render() {
     const {
@@ -464,7 +423,7 @@ export class UnthemedLogs extends PureComponent<Props, State> {
             visibleRange={visibleRange}
             absoluteRange={absoluteRange}
             timeZone={timeZone}
-            onChangeTime={this.changeTime}
+            onChangeTime={onChangeTime}
             loading={loading}
             queries={queries}
           />
