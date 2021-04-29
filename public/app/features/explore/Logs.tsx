@@ -473,7 +473,7 @@ export class UnthemedLogs extends PureComponent<Props, State> {
         {!loading && !hasData && !scanning && (
           <div className={styles.noData}>
             No logs found.
-            <Button size="xs" variant="link" onClick={this.onClickScan}>
+            <Button size="xs" fill="text" onClick={this.onClickScan}>
               Scan for older logs
             </Button>
           </div>
@@ -482,7 +482,7 @@ export class UnthemedLogs extends PureComponent<Props, State> {
         {scanning && (
           <div className={styles.noData}>
             <span>{scanText}</span>
-            <Button size="xs" variant="link" onClick={this.onClickStopScan}>
+            <Button size="xs" fill="text" onClick={this.onClickStopScan}>
               Stop scan
             </Button>
           </div>
