@@ -11,7 +11,7 @@ import {
   DataQuery,
   GrafanaTheme,
 } from '@grafana/data';
-import { Button, Icon, Spinner, useTheme, stylesFactory, CustomScrollbar } from '@grafana/ui';
+import { Button, Icon, Spinner, useTheme, stylesFactory } from '@grafana/ui';
 
 type Props = {
   absoluteRange: AbsoluteTimeRange;
@@ -128,25 +128,23 @@ function LogsNavigation({
           </div>
         </Button>
       )}
-      <CustomScrollbar autoHide>
-        <div className={styles.pagesWrapper}>
-          <div className={styles.pagesContainer}>
-            {pages.map((page: LogsPage, index) => (
-              <div
-                className={styles.page}
-                key={page.queryRange.to}
-                onClick={() => !loading && changeTime({ from: page.queryRange.from, to: page.queryRange.to })}
-              >
-                <div className={classNames(styles.line, { selectedBg: currentPageIndex === index })} />
-                <div className={classNames(styles.time, { selectedText: currentPageIndex === index })}>
-                  {createPageContent(page, index)}
-                </div>
+      <div className={styles.pagesWrapper}>
+        <div className={styles.pagesContainer}>
+          {pages.map((page: LogsPage, index) => (
+            <div
+              className={styles.page}
+              key={page.queryRange.to}
+              onClick={() => !loading && changeTime({ from: page.queryRange.from, to: page.queryRange.to })}
+            >
+              <div className={classNames(styles.line, { selectedBg: currentPageIndex === index })} />
+              <div className={classNames(styles.time, { selectedText: currentPageIndex === index })}>
+                {createPageContent(page, index)}
               </div>
-            ))}
-          </div>
-          <div className={styles.filler}></div>
+            </div>
+          ))}
         </div>
-      </CustomScrollbar>
+        <div className={styles.filler}></div>
+      </div>
 
       {!oldestLogsFirst && (
         <Button
@@ -178,6 +176,9 @@ const getStyles = stylesFactory((theme: GrafanaTheme, oldestLogsFirst: boolean, 
       display: flex;
       flex-direction: column;
       justify-content: ${oldestLogsFirst ? 'flex-start' : 'space-between'};
+      position: sticky;
+      top: 0;
+      right: 0;
     `,
     navButton: css`
       width: 58px;

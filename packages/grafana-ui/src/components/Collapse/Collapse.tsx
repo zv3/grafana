@@ -14,14 +14,14 @@ const getStyles = (theme: GrafanaTheme2) => ({
     label: collapse__body;
     padding: ${theme.spacing(theme.components.panel.padding)};
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   `,
   bodyContentWrapper: css`
     label: bodyContentWrapper;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
   `,
   loader: css`
     label: collapse__loader;

@@ -328,26 +328,28 @@ export class UnthemedLogs extends PureComponent<Props, State> {
         />
         <div className={styles.logsSection}>
           <CustomScrollbar autoHide>
-            <LogRows
-              logRows={logRows}
-              deduplicatedRows={dedupedRows}
-              dedupStrategy={dedupStrategy}
-              getRowContext={this.props.getRowContext}
-              highlighterExpressions={highlighterExpressions}
-              onClickFilterLabel={onClickFilterLabel}
-              onClickFilterOutLabel={onClickFilterOutLabel}
-              showContextToggle={showContextToggle}
-              showLabels={showLabels}
-              showTime={showTime}
-              forceEscape={forceEscape}
-              wrapLogMessage={wrapLogMessage}
-              timeZone={timeZone}
-              getFieldLinks={getFieldLinks}
-              logsSortOrder={logsSortOrder}
-              showDetectedFields={showDetectedFields}
-              onClickShowDetectedField={this.showDetectedField}
-              onClickHideDetectedField={this.hideDetectedField}
-            />
+            <div style={{ overflowY: 'hidden' }}>
+              <LogRows
+                logRows={logRows}
+                deduplicatedRows={dedupedRows}
+                dedupStrategy={dedupStrategy}
+                getRowContext={this.props.getRowContext}
+                highlighterExpressions={highlighterExpressions}
+                onClickFilterLabel={onClickFilterLabel}
+                onClickFilterOutLabel={onClickFilterOutLabel}
+                showContextToggle={showContextToggle}
+                showLabels={showLabels}
+                showTime={showTime}
+                forceEscape={forceEscape}
+                wrapLogMessage={wrapLogMessage}
+                timeZone={timeZone}
+                getFieldLinks={getFieldLinks}
+                logsSortOrder={logsSortOrder}
+                showDetectedFields={showDetectedFields}
+                onClickShowDetectedField={this.showDetectedField}
+                onClickHideDetectedField={this.hideDetectedField}
+              />
+            </div>
           </CustomScrollbar>
           <LogsNavigation
             logsSortOrder={logsSortOrder}
@@ -410,7 +412,7 @@ const getStyles = stylesFactory((theme: GrafanaTheme) => {
     logsSection: css`
       display: flex;
       flex-direction: row;
-      max-height: 95vh;
+      overflow: visible;
     `,
   };
 });
