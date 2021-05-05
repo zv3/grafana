@@ -519,6 +519,7 @@ export class AzureMonitorQueryCtrl extends QueryCtrl {
    */
   handleNewQuery = (newQuery: AzureMonitorQuery) => {
     Object.assign(this.target, newQuery);
+    console.log('saving new query', this.target);
     this.refresh();
   };
 }

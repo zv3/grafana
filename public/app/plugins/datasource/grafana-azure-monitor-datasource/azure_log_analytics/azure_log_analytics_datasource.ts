@@ -107,11 +107,17 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     return this.doRequest(workspaceListUrl, true);
   }
 
-  getSchema(workspace: string) {
-    if (!workspace) {
+  getResourcePath(resourceUri: string) {
+    const resolvedResourceUri = getTemplateSrv().replace(resourceUri, {});
+
+    return `${this.baseUrl}/${resolvedResourceUri}`;
+  }
+
+  getSchema(resourceUri: string) {
+    if (!resourceUri) {
       return Promise.resolve();
     }
-    const url = `${this.baseUrl}/${getTemplateSrv().replace(workspace, {})}/metadata`;
+    const url = `${this.getResourcePath(resourceUri)}/metadata`;
 
     return this.doRequest(url).then((response: any) => {
       return new ResponseParser(response.data).parseSchemaResult();
@@ -122,12 +128,7 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     const item = target.azureLogAnalytics;
 
     const templateSrv = getTemplateSrv();
-    let workspace = templateSrv.replace(item.workspace, scopedVars);
-
-    if (!workspace && this.defaultOrFirstWorkspace) {
-      workspace = this.defaultOrFirstWorkspace;
-    }
-
+    const resource = templateSrv.replace(item.resource, scopedVars);
     const subscriptionId = templateSrv.replace(target.subscription || this.subscriptionId, scopedVars);
     const query = templateSrv.replace(item.query, scopedVars, this.interpolateVariable);
 
@@ -137,9 +138,9 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
       queryType: AzureQueryType.LogAnalytics,
       subscriptionId: subscriptionId,
       azureLogAnalytics: {
-        resultFormat: item.resultFormat,
+        ...item,
         query: query,
-        workspace: workspace,
+        resource: resource,
       },
     };
   }
@@ -148,6 +149,7 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
    * Augment the results with links back to the azure console
    */
   query(request: DataQueryRequest<AzureMonitorQuery>): Observable<DataQueryResponse> {
+    console.log('request:', JSON.parse(JSON.stringify(request)));
     return super.query(request).pipe(
       mergeMap((res: DataQueryResponse) => {
         return from(this.processResponse(res));
@@ -178,6 +180,7 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     return res;
   }
 
+  // TODO: ????
   private async buildDeepLink(customMeta: Record<string, any>) {
     const base64Enc = encodeURIComponent(customMeta.encodedQuery);
     const workspaceId = customMeta.workspace;
@@ -379,9 +382,10 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
       return Promise.resolve(validationError);
     }
 
+    // TODO
     return this.getDefaultOrFirstWorkspace()
-      .then((ws: any) => {
-        const url = `${this.baseUrl}/${ws}/metadata`;
+      .then((ws: string) => {
+        const url = `${this.baseUrl}/workspace/${ws}/metadata`;
 
         return this.doRequest(url);
       })
@@ -401,6 +405,7 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
       })
       .catch((error: any) => {
         let message = 'Azure Log Analytics: ';
+
         if (error.config && error.config.url && error.config.url.indexOf('workspacesloganalytics') > -1) {
           message = 'Azure Log Analytics requires access to Azure Monitor but had the following error: ';
         }

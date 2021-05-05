@@ -85,7 +85,7 @@ func TestPluginRoutes(t *testing.T) {
 			{
 				Path:   "loganalyticsazure",
 				Method: "GET",
-				URL:    "https://api.loganalytics.io/v1/workspaces",
+				URL:    "https://api.loganalytics.io/v1",
 				Headers: []plugins.AppPluginRouteHeader{
 					{Name: "x-ms-app", Content: "Grafana"},
 				},
@@ -93,7 +93,7 @@ func TestPluginRoutes(t *testing.T) {
 			{
 				Path:   "chinaloganalyticsazure",
 				Method: "GET",
-				URL:    "https://api.loganalytics.azure.cn/v1/workspaces",
+				URL:    "https://api.loganalytics.azure.cn/v1",
 				Headers: []plugins.AppPluginRouteHeader{
 					{Name: "x-ms-app", Content: "Grafana"},
 				},
@@ -101,7 +101,7 @@ func TestPluginRoutes(t *testing.T) {
 			{
 				Path:   "govloganalyticsazure",
 				Method: "GET",
-				URL:    "https://api.loganalytics.us/v1/workspaces",
+				URL:    "https://api.loganalytics.us/v1",
 				Headers: []plugins.AppPluginRouteHeader{
 					{Name: "x-ms-app", Content: "Grafana"},
 				},
@@ -120,21 +120,21 @@ func TestPluginRoutes(t *testing.T) {
 			name:              "plugin proxy route for the Azure public cloud",
 			cloudName:         "azuremonitor",
 			expectedProxypass: "loganalyticsazure",
-			expectedRouteURL:  "https://api.loganalytics.io/v1/workspaces",
+			expectedRouteURL:  "https://api.loganalytics.io/v1",
 			Err:               require.NoError,
 		},
 		{
 			name:              "plugin proxy route for the Azure China cloud",
 			cloudName:         "chinaazuremonitor",
 			expectedProxypass: "chinaloganalyticsazure",
-			expectedRouteURL:  "https://api.loganalytics.azure.cn/v1/workspaces",
+			expectedRouteURL:  "https://api.loganalytics.azure.cn/v1",
 			Err:               require.NoError,
 		},
 		{
 			name:              "plugin proxy route for the Azure Gov cloud",
 			cloudName:         "govazuremonitor",
 			expectedProxypass: "govloganalyticsazure",
-			expectedRouteURL:  "https://api.loganalytics.us/v1/workspaces",
+			expectedRouteURL:  "https://api.loganalytics.us/v1",
 			Err:               require.NoError,
 		},
 	}

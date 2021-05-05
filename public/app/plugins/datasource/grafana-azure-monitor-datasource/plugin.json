@@ -155,7 +155,7 @@
     {
       "path": "loganalyticsazure",
       "method": "GET",
-      "url": "https://api.loganalytics.io/v1/workspaces",
+      "url": "https://api.loganalytics.io/v1",
       "tokenAuth": {
         "url": "https://login.microsoftonline.com/{{.JsonData.logAnalyticsTenantId}}/oauth2/token",
         "params": {
@@ -173,7 +173,7 @@
     {
       "path": "chinaloganalyticsazure",
       "method": "GET",
-      "url": "https://api.loganalytics.azure.cn/v1/workspaces",
+      "url": "https://api.loganalytics.azure.cn/v1",
       "tokenAuth": {
         "url": "https://login.chinacloudapi.cn/{{.JsonData.logAnalyticsTenantId}}/oauth2/token",
         "params": {
@@ -191,7 +191,7 @@
     {
       "path": "govloganalyticsazure",
       "method": "GET",
-      "url": "https://api.loganalytics.us/v1/workspaces",
+      "url": "https://api.loganalytics.us/v1",
       "tokenAuth": {
         "url": "https://login.microsoftonline.us/{{.JsonData.logAnalyticsTenantId}}/oauth2/token",
         "params": {

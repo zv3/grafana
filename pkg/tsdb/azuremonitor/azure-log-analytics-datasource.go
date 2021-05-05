@@ -88,9 +88,7 @@ func (e *AzureLogAnalyticsDatasource) buildQueries(queries []plugins.DataSubQuer
 			resultFormat = "time_series"
 		}
 
-		urlComponents := map[string]string{}
-		urlComponents["workspace"] = azureLogAnalyticsTarget.Workspace
-		apiURL := fmt.Sprintf("%s/query", urlComponents["workspace"])
+		apiURL := fmt.Sprintf("%s/query", azureLogAnalyticsTarget.Resource)
 
 		params := url.Values{}
 		rawQuery, err := KqlInterpolate(query, timeRange, azureLogAnalyticsTarget.Query, "TimeGenerated")
@@ -300,6 +298,7 @@ type LogAnalyticsMeta struct {
 	ColumnTypes  []string `json:"azureColumnTypes"`
 	Subscription string   `json:"subscription"`
 	Workspace    string   `json:"workspace"`
+	Resource     string   `json:"resource"`
 	EncodedQuery []byte   `json:"encodedQuery"` // EncodedQuery is used for deep links.
 }
 

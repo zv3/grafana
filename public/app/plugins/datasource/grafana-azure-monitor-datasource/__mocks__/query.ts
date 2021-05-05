@@ -9,6 +9,8 @@ export default function createMockQuery(): AzureMonitorQuery {
         '//change this example to create your own time series query\n<table name>                                                              //the table to query (e.g. Usage, Heartbeat, Perf)\n| where $__timeFilter(TimeGenerated)                                      //this is a macro used to show the full chart’s time range, choose the datetime column here\n| summarize count() by <group by column>, bin(TimeGenerated, $__interval) //change “group by column” to a column in your table, such as “Computer”. The $__interval macro is used to auto-select the time grain. Can also use 1h, 5m etc.\n| order by TimeGenerated asc',
       resultFormat: 'time_series',
       workspace: 'e3fe4fde-ad5e-4d60-9974-e2f3562ffdf2',
+      resource:
+        '/subscriptions/44693801-6ee6-49de-9b2d-9106972f9572/resourceGroups/cloud-datasources/providers/Microsoft.Compute/virtualMachines/GithubTestDataVM',
     },
 
     azureMonitor: {
