@@ -385,7 +385,7 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     // TODO
     return this.getDefaultOrFirstWorkspace()
       .then((ws: string) => {
-        const url = `${this.baseUrl}/workspace/${ws}/metadata`;
+        const url = `${this.baseUrl}/workspaces/${ws}/metadata`;
 
         return this.doRequest(url);
       })
