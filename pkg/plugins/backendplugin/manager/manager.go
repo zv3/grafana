@@ -15,6 +15,7 @@ import (
 
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	pluginSDK "github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/plugins"
@@ -43,6 +44,7 @@ type manager struct {
 }
 
 func (m *manager) Init() error {
+	pluginSDK.SetLogger(log.New("plugin.sdk"))
 	return nil
 }
 
