@@ -101,10 +101,11 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
   getWorkspaceList(subscription: string): Promise<any> {
     const subscriptionId = getTemplateSrv().replace(subscription || this.subscriptionId);
 
-    const workspaceListUrl =
+    const url =
       this.azureMonitorUrl +
       `/${subscriptionId}/providers/Microsoft.OperationalInsights/workspaces?api-version=2017-04-26-preview`;
-    return this.doRequest(workspaceListUrl, true);
+    console.log('getWorkspaceList url:', url);
+    return this.doRequest({ url }, true);
   }
 
   getResourcePath(resourceUri: string) {
@@ -119,7 +120,7 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     }
     const url = `${this.getResourcePath(resourceUri)}/metadata`;
 
-    return this.doRequest(url).then((response: any) => {
+    return this.doRequest({ url }).then((response: any) => {
       return new ResponseParser(response.data).parseSchemaResult();
     });
   }
@@ -351,15 +352,23 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     });
   }
 
-  async doRequest(url: string, useCache = false, maxRetries = 1): Promise<any> {
+  async doRequest(
+    options: { url: string; data?: any; method?: string },
+    useCache = false,
+    maxRetries = 1
+  ): Promise<any> {
+    const { url, method, data } = options;
     try {
       if (useCache && this.cache.has(url)) {
         return this.cache.get(url);
       }
 
+      const fullUrl = this.url + url;
+      console.log('fullUrl:', fullUrl);
       const res = await getBackendSrv().datasourceRequest({
-        url: this.url + url,
-        method: 'GET',
+        url: fullUrl,
+        method: method ?? 'GET',
+        data,
       });
 
       if (useCache) {
@@ -369,11 +378,32 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
       return res;
     } catch (error) {
       if (maxRetries > 0) {
-        return this.doRequest(url, useCache, maxRetries - 1);
+        return this.doRequest(options, useCache, maxRetries - 1);
       }
 
       throw error;
     }
+  }
+
+  /** Returns a single resource from the provided subscription. Used to test the datasource */
+  async getTestResource(subscriptionId: string) {
+    const url = `${this.azureMonitorUrl}/providers/Microsoft.ResourceGraph/resources?api-version=2019-04-01`;
+
+    const data = {
+      query: `resources | project id, name`,
+      subscriptions: [subscriptionId],
+    };
+
+    console.log('url:', url);
+    // url:                          /azuremonitor/providers/Microsoft.ResourceGraph/resources?api-version=2019-04-01
+    // path=/api/datasources/proxy/31/azuremonitor/providers/Microsoft.ResourceGraph/resources
+
+    const resp = await this.doRequest({
+      url,
+      data,
+      method: 'POST',
+    });
+    console.log(resp);
   }
 
   testDatasource(): Promise<any> {
@@ -382,12 +412,14 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
       return Promise.resolve(validationError);
     }
 
-    // TODO
+    this.getTestResource(this.subscriptionId);
+    this.getWorkspaceList(this.subscriptionId);
+
     return this.getDefaultOrFirstWorkspace()
       .then((ws: string) => {
         const url = `${this.baseUrl}/workspaces/${ws}/metadata`;
 
-        return this.doRequest(url);
+        return this.doRequest({ url });
       })
       .then((response: any) => {
         if (response.status === 200) {
