@@ -9,7 +9,7 @@ import {
   DataSourceInstanceSettings,
   MetricFindValue,
 } from '@grafana/data';
-import { getBackendSrv, getTemplateSrv, DataSourceWithBackend } from '@grafana/runtime';
+import { getBackendSrv, getTemplateSrv, DataSourceWithBackend, FetchResponse } from '@grafana/runtime';
 import { Observable, from } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
@@ -352,11 +352,11 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     });
   }
 
-  async doRequest(
+  async doRequest<T = any>(
     options: { url: string; data?: any; method?: string },
     useCache = false,
     maxRetries = 1
-  ): Promise<any> {
+  ): Promise<FetchResponse<T>> {
     const { url, method, data } = options;
     try {
       if (useCache && this.cache.has(url)) {
@@ -385,36 +385,13 @@ export default class AzureLogAnalyticsDatasource extends DataSourceWithBackend<
     }
   }
 
-  /** Returns a single resource from the provided subscription. Used to test the datasource */
-  async getTestResource(subscriptionId: string) {
-    const url = `${this.azureMonitorUrl}/providers/Microsoft.ResourceGraph/resources?api-version=2019-04-01`;
-
-    const data = {
-      query: `resources | project id, name`,
-      subscriptions: [subscriptionId],
-    };
-
-    console.log('url:', url);
-    // url:                          /azuremonitor/providers/Microsoft.ResourceGraph/resources?api-version=2019-04-01
-    // path=/api/datasources/proxy/31/azuremonitor/providers/Microsoft.ResourceGraph/resources
-
-    const resp = await this.doRequest({
-      url,
-      data,
-      method: 'POST',
-    });
-    console.log(resp);
-  }
-
   testDatasource(): Promise<any> {
     const validationError = this.isValidConfig();
     if (validationError) {
       return Promise.resolve(validationError);
     }
 
-    this.getTestResource(this.subscriptionId);
-    this.getWorkspaceList(this.subscriptionId);
-
+    // TODO: Use Resources instead of Workspace for testing
     return this.getDefaultOrFirstWorkspace()
       .then((ws: string) => {
         const url = `${this.baseUrl}/workspaces/${ws}/metadata`;
