@@ -86,13 +86,9 @@ func (srv AlertmanagerSrv) RouteGetAlertingConfig(c *models.ReqContext) response
 				secureFields[k] = true
 			}
 			gr := apimodels.GettableGrafanaReceiver{
-				Uid:                   pr.Uid,
 				Name:                  pr.Name,
 				Type:                  pr.Type,
-				IsDefault:             pr.IsDefault,
-				SendReminder:          pr.SendReminder,
 				DisableResolveMessage: pr.DisableResolveMessage,
-				Frequency:             pr.Frequency,
 				Settings:              pr.Settings,
 				SecureFields:          secureFields,
 			}

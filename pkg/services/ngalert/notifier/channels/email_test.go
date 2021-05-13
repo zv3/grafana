@@ -23,7 +23,7 @@ func TestEmailNotifier(t *testing.T) {
 		json := `{ }`
 
 		settingsJSON, _ := simplejson.NewJson([]byte(json))
-		model := &models.AlertNotification{
+		model := &NotificationChannelConfig{
 			Name:     "ops",
 			Type:     "email",
 			Settings: settingsJSON,
@@ -38,7 +38,7 @@ func TestEmailNotifier(t *testing.T) {
 		settingsJSON, err := simplejson.NewJson([]byte(json))
 		require.NoError(t, err)
 
-		emailNotifier, err := NewEmailNotifier(&models.AlertNotification{
+		emailNotifier, err := NewEmailNotifier(&NotificationChannelConfig{
 			Name: "ops",
 			Type: "email",
 

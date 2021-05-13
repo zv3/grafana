@@ -44,7 +44,7 @@ type PagerdutyNotifier struct {
 }
 
 // NewPagerdutyNotifier is the constructor for the PagerDuty notifier
-func NewPagerdutyNotifier(model *models.AlertNotification, t *template.Template) (*PagerdutyNotifier, error) {
+func NewPagerdutyNotifier(model *NotificationChannelConfig, t *template.Template) (*PagerdutyNotifier, error) {
 	if model.Settings == nil {
 		return nil, alerting.ValidationError{Reason: "No Settings Supplied"}
 	}
@@ -55,8 +55,13 @@ func NewPagerdutyNotifier(model *models.AlertNotification, t *template.Template)
 	}
 
 	return &PagerdutyNotifier{
-		NotifierBase: old_notifiers.NewNotifierBase(model),
-		Key:          key,
+		NotifierBase: old_notifiers.NewNotifierBase(&models.AlertNotification{
+			Name:                  model.Name,
+			Type:                  model.Type,
+			DisableResolveMessage: model.DisableResolveMessage,
+			Settings:              model.Settings,
+		}),
+		Key: key,
 		CustomDetails: map[string]string{
 			"firing":       `{{ template "__text_alert_list" .Alerts.Firing }}`,
 			"resolved":     `{{ template "__text_alert_list" .Alerts.Resolved }}`,

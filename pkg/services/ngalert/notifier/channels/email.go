@@ -30,7 +30,7 @@ type EmailNotifier struct {
 
 // NewEmailNotifier is the constructor function
 // for the EmailNotifier.
-func NewEmailNotifier(model *models.AlertNotification, externalUrl *url.URL) (*EmailNotifier, error) {
+func NewEmailNotifier(model *NotificationChannelConfig, externalUrl *url.URL) (*EmailNotifier, error) {
 	if model.Settings == nil {
 		return nil, alerting.ValidationError{Reason: "No Settings Supplied"}
 	}
@@ -46,11 +46,16 @@ func NewEmailNotifier(model *models.AlertNotification, externalUrl *url.URL) (*E
 	addresses := util.SplitEmails(addressesString)
 
 	return &EmailNotifier{
-		NotifierBase: old_notifiers.NewNotifierBase(model),
-		Addresses:    addresses,
-		SingleEmail:  singleEmail,
-		log:          log.New("alerting.notifier.email"),
-		externalUrl:  externalUrl,
+		NotifierBase: old_notifiers.NewNotifierBase(&models.AlertNotification{
+			Name:                  model.Name,
+			Type:                  model.Type,
+			DisableResolveMessage: model.DisableResolveMessage,
+			Settings:              model.Settings,
+		}),
+		Addresses:   addresses,
+		SingleEmail: singleEmail,
+		log:         log.New("alerting.notifier.email"),
+		externalUrl: externalUrl,
 	}, nil
 }
 

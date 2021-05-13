@@ -53,7 +53,7 @@ var reRecipient *regexp.Regexp = regexp.MustCompile("^((@[a-z0-9][a-zA-Z0-9._-]*
 const slackAPIEndpoint = "https://slack.com/api/chat.postMessage"
 
 // NewSlackNotifier is the constructor for the Slack notifier
-func NewSlackNotifier(model *models.AlertNotification, t *template.Template) (*SlackNotifier, error) {
+func NewSlackNotifier(model *NotificationChannelConfig, t *template.Template) (*SlackNotifier, error) {
 	if model.Settings == nil {
 		return nil, alerting.ValidationError{Reason: "No Settings Supplied"}
 	}
@@ -111,7 +111,12 @@ func NewSlackNotifier(model *models.AlertNotification, t *template.Template) (*S
 	}
 
 	return &SlackNotifier{
-		NotifierBase:   old_notifiers.NewNotifierBase(model),
+		NotifierBase: old_notifiers.NewNotifierBase(&models.AlertNotification{
+			Name:                  model.Name,
+			Type:                  model.Type,
+			DisableResolveMessage: model.DisableResolveMessage,
+			Settings:              model.Settings,
+		}),
 		URL:            apiURL,
 		Recipient:      recipient,
 		MentionUsers:   mentionUsers,

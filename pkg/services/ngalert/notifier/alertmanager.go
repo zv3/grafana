@@ -27,7 +27,6 @@ import (
 
 	"github.com/grafana/grafana/pkg/components/securejsondata"
 	"github.com/grafana/grafana/pkg/infra/log"
-	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/registry"
 	apimodels "github.com/grafana/grafana/pkg/services/ngalert/api/tooling/definitions"
 	"github.com/grafana/grafana/pkg/services/ngalert/metrics"
@@ -389,12 +388,9 @@ func (am *Alertmanager) buildReceiverIntegrations(receiver *apimodels.PostableAp
 			secureSettings[k] = d
 		}
 		var (
-			cfg = &models.AlertNotification{
-				Uid:                   r.Uid,
+			cfg = &channels.NotificationChannelConfig{
 				Name:                  r.Name,
 				Type:                  r.Type,
-				IsDefault:             r.IsDefault,
-				SendReminder:          r.SendReminder,
 				DisableResolveMessage: r.DisableResolveMessage,
 				Settings:              r.Settings,
 				SecureSettings:        secureSettings,

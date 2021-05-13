@@ -6,6 +6,9 @@ import (
 
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/common/model"
+
+	"github.com/grafana/grafana/pkg/components/securejsondata"
+	"github.com/grafana/grafana/pkg/components/simplejson"
 )
 
 const (
@@ -31,4 +34,20 @@ func getTitleFromTemplateData(data *template.Data) string {
 		title += "(" + strings.Join(data.CommonLabels.Remove(data.GroupLabels.Names()).Values(), " ") + ")"
 	}
 	return title
+}
+
+type NotificationChannelConfig struct {
+	Name                  string                        `json:"name"`
+	Type                  string                        `json:"type"`
+	DisableResolveMessage bool                          `json:"disableResolveMessage"`
+	Settings              *simplejson.Json              `json:"settings"`
+	SecureSettings        securejsondata.SecureJsonData `json:"secureSettings"`
+}
+
+// DecryptedValue returns decrypted value from secureSettings
+func (an *NotificationChannelConfig) DecryptedValue(field string, fallback string) string {
+	if value, ok := an.SecureSettings.DecryptedValue(field); ok {
+		return value
+	}
+	return fallback
 }

@@ -4,10 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/grafana/grafana/pkg/components/simplejson"
 	"reflect"
 
-	"github.com/grafana/grafana/pkg/api/dtos"
-	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util"
 	"github.com/prometheus/alertmanager/config"
@@ -484,8 +483,21 @@ func AllReceivers(route *config.Route) (res []string) {
 	return res
 }
 
-type GettableGrafanaReceiver dtos.AlertNotification
-type PostableGrafanaReceiver models.CreateAlertNotificationCommand
+type GettableGrafanaReceiver struct {
+	Name                  string           `json:"name"`
+	Type                  string           `json:"type"`
+	DisableResolveMessage bool             `json:"disableResolveMessage"`
+	Settings              *simplejson.Json `json:"settings"`
+	SecureFields          map[string]bool  `json:"secureFields"`
+}
+
+type PostableGrafanaReceiver struct {
+	Name                  string            `json:"name"  binding:"Required"`
+	Type                  string            `json:"type"  binding:"Required"`
+	DisableResolveMessage bool              `json:"disableResolveMessage"`
+	Settings              *simplejson.Json  `json:"settings"`
+	SecureSettings        map[string]string `json:"secureSettings"`
+}
 
 type ReceiverType int
 
