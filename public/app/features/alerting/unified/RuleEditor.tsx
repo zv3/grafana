@@ -1,5 +1,6 @@
 import { Alert, Button, LoadingPlaceholder } from '@grafana/ui';
 import Page from 'app/core/components/Page/Page';
+import { withErrorBoundary } from 'app/core/hoc/withErrorBoundary';
 import { useCleanup } from 'app/core/hooks/useCleanup';
 import { GrafanaRouteComponentProps } from 'app/core/navigation/types';
 import { RuleIdentifier } from 'app/types/unified-alerting';
@@ -66,4 +67,4 @@ const RuleEditor: FC<RuleEditorProps> = ({ match }) => {
   return <AlertRuleForm />;
 };
 
-export default RuleEditor;
+export default withErrorBoundary('page', RuleEditor);

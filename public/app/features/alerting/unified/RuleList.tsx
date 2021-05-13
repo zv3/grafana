@@ -1,7 +1,7 @@
 import { DataSourceInstanceSettings, GrafanaTheme, urlUtil } from '@grafana/data';
 import { useStyles, Button, ButtonGroup, ToolbarButton, Alert } from '@grafana/ui';
 import { SerializedError } from '@reduxjs/toolkit';
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { AlertingPageWrapper } from './components/AlertingPageWrapper';
 import { NoRulesSplash } from './components/rules/NoRulesCTA';
@@ -17,13 +17,14 @@ import RulesFilter from './components/rules/RulesFilter';
 import { RuleListGroupView } from './components/rules/RuleListGroupView';
 import { RuleListStateView } from './components/rules/RuleListStateView';
 import { useQueryParams } from 'app/core/hooks/useQueryParams';
+import { withErrorBoundary } from 'app/core/hoc/withErrorBoundary';
 
 const VIEWS = {
   groups: RuleListGroupView,
   state: RuleListStateView,
 };
 
-export const RuleList: FC = () => {
+export const RuleList = withErrorBoundary('page', () => {
   const dispatch = useDispatch();
   const styles = useStyles(getStyles);
   const rulesDataSourceNames = useMemo(getAllRulesSourceNames, []);
@@ -136,7 +137,7 @@ export const RuleList: FC = () => {
       {haveResults && <ViewComponent namespaces={filteredNamespaces} />}
     </AlertingPageWrapper>
   );
-};
+});
 
 const getStyles = (theme: GrafanaTheme) => ({
   break: css`
