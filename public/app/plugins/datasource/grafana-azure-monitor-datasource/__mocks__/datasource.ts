@@ -30,6 +30,10 @@ export default function createMockDatasource() {
       supportedTimeGrains: [],
       dimensions: [],
     }),
+    resourcePickerData: {
+      getResourcePickerData: () => ({}),
+      getResourcePickerDataWithNestedResourceData: () => ({}),
+    },
   };
 
   const mockDatasource = _mockDatasource as Datasource;
