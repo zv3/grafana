@@ -420,6 +420,8 @@ func (am *Alertmanager) buildReceiverIntegrations(receiver *apimodels.PostableAp
 			n, err = channels.NewDingDingNotifier(cfg, tmpl)
 		case "webhook":
 			n, err = channels.NewWebHookNotifier(cfg, tmpl)
+		case "kafka":
+			n, err = channels.NewKafkaNotifier(cfg, tmpl)
 		default:
 			return nil, fmt.Errorf("notifier %s is not supported", r.Type)
 		}

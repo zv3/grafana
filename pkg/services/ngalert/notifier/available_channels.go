@@ -340,5 +340,29 @@ func GetAvailableNotifiers() []*alerting.NotifierPlugin {
 				},
 			},
 		},
+		{
+			Type:        "kafka",
+			Name:        "Kafka REST Proxy",
+			Description: "Sends notifications to Kafka Rest Proxy",
+			Heading:     "Kafka settings",
+			Options: []alerting.NotifierOption{
+				{
+					Label:        "Kafka REST Proxy",
+					Element:      alerting.ElementTypeInput,
+					InputType:    alerting.InputTypeText,
+					Placeholder:  "http://localhost:8082",
+					PropertyName: "kafkaRestProxy",
+					Required:     true,
+				},
+				{
+					Label:        "Topic",
+					Element:      alerting.ElementTypeInput,
+					InputType:    alerting.InputTypeText,
+					Placeholder:  "topic1",
+					PropertyName: "kafkaTopic",
+					Required:     true,
+				},
+			},
+		},
 	}
 }

@@ -3,11 +3,11 @@ package channels
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"path"
 
 	gokit_log "github.com/go-kit/kit/log"
-	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/notify"
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/alertmanager/types"
@@ -99,7 +99,7 @@ func (dd *DingDingNotifier) Notify(ctx context.Context, as ...*types.Alert) (boo
 	}
 
 	if tmplErr != nil {
-		return false, errors.Wrap(tmplErr, "failed to template dingding message")
+		return false, fmt.Errorf("failed to template DingDing message: %w", tmplErr)
 	}
 
 	body, err := json.Marshal(bodyMsg)
@@ -113,7 +113,7 @@ func (dd *DingDingNotifier) Notify(ctx context.Context, as ...*types.Alert) (boo
 	}
 
 	if err := bus.DispatchCtx(ctx, cmd); err != nil {
-		return false, errors.Wrap(err, "send notification to dingding")
+		return false, fmt.Errorf("send notification to dingding: %w", err)
 	}
 
 	return true, nil

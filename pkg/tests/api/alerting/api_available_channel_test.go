@@ -37,6 +37,7 @@ func TestAvailableChannels(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
+	fmt.Println(string(b))
 	require.JSONEq(t, expAvailableChannelJsonOutput, string(b))
 }
 
@@ -660,6 +661,47 @@ var expAvailableChannelJsonOutput = `
           "is": ""
         },
         "required": false,
+        "validationRule": "",
+        "secure": false
+      }
+    ]
+  },
+  {
+    "type": "kafka",
+    "name": "Kafka REST Proxy",
+    "heading": "Kafka settings",
+    "description": "Sends notifications to Kafka Rest Proxy",
+    "info": "",
+    "options": [
+      {
+        "element": "input",
+        "inputType": "text",
+        "label": "Kafka REST Proxy",
+        "description": "",
+        "placeholder": "http://localhost:8082",
+        "propertyName": "kafkaRestProxy",
+        "selectOptions": null,
+        "showWhen": {
+          "field": "",
+          "is": ""
+        },
+        "required": true,
+        "validationRule": "",
+        "secure": false
+      },
+      {
+        "element": "input",
+        "inputType": "text",
+        "label": "Topic",
+        "description": "",
+        "placeholder": "topic1",
+        "propertyName": "kafkaTopic",
+        "selectOptions": null,
+        "showWhen": {
+          "field": "",
+          "is": ""
+        },
+        "required": true,
         "validationRule": "",
         "secure": false
       }
