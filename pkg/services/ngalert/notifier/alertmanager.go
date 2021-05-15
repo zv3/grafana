@@ -420,6 +420,8 @@ func (am *Alertmanager) buildReceiverIntegrations(receiver *apimodels.PostableAp
 			n, err = channels.NewDingDingNotifier(cfg, tmpl)
 		case "webhook":
 			n, err = channels.NewWebHookNotifier(cfg, tmpl)
+		case "googlechat":
+			n, err = channels.NewGoogleChatNotifier(cfg, tmpl)
 		default:
 			return nil, fmt.Errorf("notifier %s is not supported", r.Type)
 		}
