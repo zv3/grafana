@@ -75,7 +75,6 @@ export function UnthemedTimeRangePicker(props: TimeRangePickerProps): ReactEleme
   };
 
   const onOpen = (event: FormEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
     event.preventDefault();
     setOpen(!isOpen);
   };
